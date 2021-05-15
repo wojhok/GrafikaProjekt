@@ -18,8 +18,21 @@
     <ClCompile Include="main.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="Window.cpp">
+    <ClCompile Include="shaderProgram.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="VertexShader.glsl">
+      <Filter>Pliki zasobów</Filter>
+    </None>
+    <None Include="FragmenShader.glsl">
+      <Filter>Pliki zasobów</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="shaderProgram.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

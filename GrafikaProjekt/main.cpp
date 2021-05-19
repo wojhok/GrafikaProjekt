@@ -229,7 +229,7 @@ int main()
 	glfwSetTime(0); //Zeruj timer
 	while (!glfwWindowShouldClose(window)) //Tak d³ugo jak okno nie powinno zostaæ zamkniête
 	{
-		cameraPos += float(positionSpeedHorizontal * glfwGetTime()) * glm::vec3(cameraLook.z, 0, -cameraLook.x); // przesuwanie w prawo lub lew wraz z uwzglêdnieniem kieunku wzroku
+		cameraPos += float(positionSpeedHorizontal * glfwGetTime()) * glm::vec3(cameraLook.z, 0, -cameraLook.x); // przesuwanie w prawo lub w lewo wraz z uwzglêdnieniem kieunku wzroku
 		cameraPos += float(positionSpeedVertical*glfwGetTime())*glm::vec3(cameraLook.x,0, cameraLook.z); // przesuwanie w przód lub w ty³ wraz z uwzglêdnieniem kieunku wzroku
 		glfwSetTime(0); //Zeruj timer
 		drawScene(window, position_z, position_x); //Wykonaj procedurê rysuj¹c¹

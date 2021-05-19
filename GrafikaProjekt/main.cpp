@@ -16,6 +16,8 @@ using namespace std;
 
 float speed_x = 0;
 float speed_y = 0;
+float positionSpeedVertical = 0;
+float positionSpeedHorizontal = 0;
 
 float* vertices = myCubeVertices;
 float* normals = myCubeNormals;
@@ -23,18 +25,101 @@ float* texCoords = myCubeTexCoords;
 float* colors = myCubeColors;
 int vertexCount = myCubeVertexCount;
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+glm::vec3 positionOfCubesArr[] = {glm::vec3(0.0f,0.0f,0.0f),
+								  glm::vec3(-4.0f,-5.0f,0.0f),
+								  glm::vec3(4.0f,0.0f,0.0f),
+								  glm::vec3(0.0f,4.0f,5.0f),
+								  glm::vec3(2.0f,5.0f,-2.0f),
+								  glm::vec3(2.0f,-4.0f,4.0f)}; // Tablica przechowuj¹ca po³o¿enia kolejnych szeœcianów
+
+
+//kamera
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -3.0f); // po³o¿enie kamery
+glm::vec3 cameraLook = glm::vec3(0.0f, 0.0f, 1.0f); // gdzie patrzymy
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+float yaw_ = 90.0f;
+float pitch_ = 0.0f;
+// stan myszy
+bool firstMouse = true; // czy mysz klikniêta
+float lastX; 
+float lastY;
+float mouseXPosition;
+float mouseYPosition;
+bool leftButtonPressed = false;
+
+
+void mouseButtonCallback(GLFWwindow* window, int button,int action, int mods)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+		leftButtonPressed = true;
+	}
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+	{
+		leftButtonPressed = false;
+		firstMouse = true;
+	}
+}
+void cursor_callback(GLFWwindow* window, double xPos, double yPos)
+{
+	if (leftButtonPressed) // Przesuniêcie kamery je¿eli lewy przycisk myszy jest wciœniêty  
+	{
+		if (firstMouse)
+		{
+			lastX = xPos;
+			lastY = yPos;
+			firstMouse = false;
+		}
+		float xOffset = xPos - lastX;
+		float yOffset = lastY - yPos;
+
+		lastX = xPos;
+		lastY = yPos;
+		float sensitivity = 0.1f;
+		xOffset *= sensitivity;
+		yOffset *= sensitivity;
+		yaw_ += xOffset;
+		pitch_ += yOffset;
+		if (pitch_ > 89.0f)
+		{
+			pitch_ = 89.0f;
+		}
+		if (pitch_ < -89.0f)
+		{
+			pitch_ = -89.0f;
+		}
+		glm::vec3 front;
+		front.x = cos(glm::radians(yaw_)) * cos(glm::radians(pitch_)); //wyliczenie wpó³rzêdnej X kamery
+		front.y = sin(glm::radians(pitch_)); //wyliczenie wspó³rzêdnej Y kamery
+		front.z = sin(glm::radians(yaw_)) * cos(glm::radians(pitch_)); //wyliczenie wspó³rzêdnej Z kamery
+		cameraLook = glm::normalize(front);
+	}
+	else { 
+		mouseXPosition = xPos;
+		mouseYPosition = yPos;
+	}
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) { //Obs³uga klawiszy
 	if (action == GLFW_PRESS) {
 		if (key == GLFW_KEY_LEFT) speed_x = -3.14 / 2;
 		if (key == GLFW_KEY_RIGHT) speed_x = 3.14 / 2;
 		if (key == GLFW_KEY_UP) speed_y = 3.14 / 2;
 		if (key == GLFW_KEY_DOWN) speed_y = -3.14 / 2;
+		if (key == GLFW_KEY_W) positionSpeedVertical = 3.14 / 2;
+		if (key == GLFW_KEY_S) positionSpeedVertical = -3.14 / 2;
+		if (key == GLFW_KEY_A) positionSpeedHorizontal = 3.14 / 2;
+		if (key == GLFW_KEY_D) positionSpeedHorizontal = -3.14 / 2;
 	}
 	if (action == GLFW_RELEASE) {
 		if (key == GLFW_KEY_LEFT) speed_x = 0;
 		if (key == GLFW_KEY_RIGHT) speed_x = 0;
 		if (key == GLFW_KEY_UP) speed_y = 0;
 		if (key == GLFW_KEY_DOWN) speed_y = 0;
+		if (key == GLFW_KEY_W) positionSpeedVertical = 0;
+		if (key == GLFW_KEY_S) positionSpeedVertical = 0;
+		if (key == GLFW_KEY_A) positionSpeedHorizontal = 0;
+		if (key == GLFW_KEY_D) positionSpeedHorizontal = 0;
 	}
 }
 
@@ -68,34 +153,39 @@ void freeOpenGLProgram(GLFWwindow* window) {
 
 
 
-void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
+void drawScene(GLFWwindow* window, float position_z,float position_x) {
 	//************Tutaj umieszczaj kod rysuj¹cy obraz******************
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glm::mat4 V = glm::lookAt(
-		glm::vec3(0, 0, -5),
-		glm::vec3(0, 0, 0),
-		glm::vec3(0.0f, 1.0f, 0.0f)); //Wylicz macierz widoku
+		cameraPos,
+		cameraPos+cameraLook,
+		//cameraPos + calcDir(angle_x),
+		glm::vec3(0, 1.0f, 0)); //Wylicz macierz widoku
 
 	glm::mat4 P = glm::perspective(glm::radians(50.0f), 1.0f, 1.2f, 50.0f);
 
-	glm::mat4 M = glm::mat4(1.0f);
-	M = glm::rotate(M, angle_y, glm::vec3(1.0f, 0.0f, 0.0f)); //Wylicz macierz modelu
-	M = glm::rotate(M, angle_x, glm::vec3(0.0f, 1.0f, 0.0f)); //Wylicz macierz modelu
-
-	sp->use();//Aktywacja programu cieniuj¹cego
-	//Przeslij parametry programu cieniuj¹cego do karty graficznej
 	glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
 	glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
-	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
 
-	glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
-	glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, vertices); //Wska¿ tablicê z danymi dla atrybutu vertex
+	glm::mat4 M = glm::mat4(1.0f);
+	
+	//M = glm::rotate(M, angle_y, glm::vec3(1.0f, 0.0f, 0.0f)); //obrót wokó³ osi X uk³adu
+	//M = glm::rotate(M, angle_x, glm::vec3(0.0f, 1.0f, 0.0f)); //Wylicz macierz modelu
 
-	glEnableVertexAttribArray(sp->a("color"));  //W³¹cz przesy³anie danych do atrybutu vertex
-	glVertexAttribPointer(sp->a("color"), 4, GL_FLOAT, false, 0, colors); //Wska¿ tablicê z danymi dla atrybutu vertex
-
-	glDrawArrays(GL_TRIANGLES, 0, vertexCount); //Narysuj obiekt
+	sp->use();//Aktywacja programu cieniuj¹cego
+	for (int i = 0; i < 6; i++) //Rysowanie 6 szeœcianów
+	{
+		glm::mat4 M1 = M;
+		M1 = glm::translate(M, positionOfCubesArr[i]);
+		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M1));
+		glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
+		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, vertices); //Wska¿ tablicê z danymi dla atrybutu vertex
+		glEnableVertexAttribArray(sp->a("color"));  //W³¹cz przesy³anie danych do atrybutu vertex
+		glVertexAttribPointer(sp->a("color"), 4, GL_FLOAT, false, 0, colors); //Wska¿ tablicê z danymi dla atrybutu vertex
+		glDrawArrays(GL_TRIANGLES, 0, vertexCount); //Narysuj obiekt
+	}
+	
 
 	glDisableVertexAttribArray(sp->a("vertex"));  //Wy³¹cz przesy³anie danych do atrybutu vertex
 	glDisableVertexAttribArray(sp->a("color"));		//Wy³¹cz przesy³anie danych do atrybutu color
@@ -135,17 +225,19 @@ int main()
 	initOpenGLProgram(window); //Operacje inicjuj¹ce
 	glEnable(GL_DEPTH_TEST);
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPosCallback(window, cursor_callback);
+	glfwSetMouseButtonCallback(window, mouseButtonCallback);
 
 	//G³ówna pêtla
-	float angle_x = 0; //Aktualny k¹t obrotu obiektu
-	float angle_y = 0; //Aktualny k¹t obrotu obiektu
+	float position_z = 0; //Aktualna pozycja kamery
+	float position_x = 0; // Aktualna pozycja kamery
 	glfwSetTime(0); //Zeruj timer
 	while (!glfwWindowShouldClose(window)) //Tak d³ugo jak okno nie powinno zostaæ zamkniête
 	{
-		angle_x += speed_x * glfwGetTime(); //Zwiêksz/zmniejsz k¹t obrotu na podstawie prêdkoœci i czasu jaki up³yna³ od poprzedniej klatki
-		angle_y += speed_y * glfwGetTime(); //Zwiêksz/zmniejsz k¹t obrotu na podstawie prêdkoœci i czasu jaki up³yna³ od poprzedniej klatki
+		cameraPos += float(positionSpeedHorizontal * glfwGetTime()) * glm::vec3(cameraLook.z, 0, -cameraLook.x); // przesuwanie w prawo lub lew wraz z uwzglêdnieniem kieunku wzroku
+		cameraPos += float(positionSpeedVertical*glfwGetTime())*glm::vec3(cameraLook.x,0, cameraLook.z); // przesuwanie w przód lub w ty³ wraz z uwzglêdnieniem kieunku wzroku
 		glfwSetTime(0); //Zeruj timer
-		drawScene(window, angle_x, angle_y); //Wykonaj procedurê rysuj¹c¹
+		drawScene(window, position_z, position_x); //Wykonaj procedurê rysuj¹c¹
 		glfwPollEvents(); //Wykonaj procedury callback w zaleznoœci od zdarzeñ jakie zasz³y.
 	}
 

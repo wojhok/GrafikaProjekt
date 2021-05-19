@@ -34,8 +34,8 @@ glm::vec3 positionOfCubesArr[] = {glm::vec3(0.0f,0.0f,0.0f),
 
 
 //kamera
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -3.0f); // po³o¿enie kamery
-glm::vec3 cameraLook = glm::vec3(0.0f, 0.0f, 1.0f); // gdzie patrzymy
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -5.0f); // po³o¿enie kamery
+glm::vec3 cameraLook = glm::vec3(0.0f, 0.0f, 2.0f); // gdzie patrzymy
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 float yaw_ = 90.0f;
 float pitch_ = 0.0f;
@@ -43,8 +43,6 @@ float pitch_ = 0.0f;
 bool firstMouse = true; // czy mysz klikniêta
 float lastX; 
 float lastY;
-float mouseXPosition;
-float mouseYPosition;
 bool leftButtonPressed = false;
 
 
@@ -94,10 +92,7 @@ void cursor_callback(GLFWwindow* window, double xPos, double yPos)
 		front.z = sin(glm::radians(yaw_)) * cos(glm::radians(pitch_)); //wyliczenie wspó³rzêdnej Z kamery
 		cameraLook = glm::normalize(front);
 	}
-	else { 
-		mouseXPosition = xPos;
-		mouseYPosition = yPos;
-	}
+	
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) { //Obs³uga klawiszy

@@ -8,7 +8,6 @@
 #include <iostream>
 #include "Model.h"
 #include "shaderProgram.h"
-#include "Mesh.h"
 
 ShaderProgram* sp;
 

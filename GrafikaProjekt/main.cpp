@@ -9,6 +9,9 @@
 #include "Model.h"
 #include "shaderProgram.h"
 #include "Mesh.h"
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 ShaderProgram* sp;
 
@@ -25,6 +28,11 @@ float* normals = myCubeNormals;
 float* texCoords = myCubeTexCoords;
 float* colors = myCubeColors;
 int vertexCount = myCubeVertexCount;
+
+std::vector<glm::vec4> verts;
+std::vector<glm::vec4> norms;
+std::vector<glm::vec2> texCoords1;
+std::vector<unsigned int> indices;
 
 glm::vec3 positionOfCubesArr[] = {glm::vec3(0.0f,0.0f,0.0f),
 								  glm::vec3(-4.0f,-5.0f,0.0f),
@@ -46,6 +54,39 @@ float lastX;
 float lastY;
 bool leftButtonPressed = false;
 
+void loadModel(std::string fileName ){
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(fileName,
+		aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
+	std::cout << importer.GetErrorString() << std::endl;
+	
+	aiMesh* mesh = scene->mMeshes[0];
+	for (int i = 0; i < mesh->mNumVertices; i++)
+	{
+		aiVector3D vertex = mesh->mVertices[i];
+		verts.push_back(glm::vec4(vertex.x, vertex.y, vertex.z, 1));
+
+		aiVector3D normal = mesh->mNormals[i];
+		norms.push_back(glm::vec4(normal.x, normal.y, normal.z, 0));
+		// liczba zdefiniowanych zestawów wsp. teksturowania(zestawów jest ma 8)
+		unsigned int liczba_zesp = mesh->GetNumUVChannels();
+		// Liczba sk³adowych wsp. teksturowania dla 0 zestawy.
+		unsigned int wymiar_wsp_tex = mesh->mNumUVComponents[0];
+		//0 to numer zestawu wspó³rzêdych teksturowania
+		aiVector3D texCoord = mesh->mTextureCoords[0][i];
+		texCoords1.push_back(glm::vec2(texCoord.x,texCoord.y));
+		
+		for (int i = 0; i < mesh->mNumFaces; i++)
+		{
+			aiFace& face = mesh->mFaces[i];
+			for (int j  = 0; j < face.mNumIndices; j++)
+			{
+				indices.push_back(face.mIndices[j]);
+			}
+		}
+	}
+	 
+}
 
 void mouseButtonCallback(GLFWwindow* window, int button,int action, int mods)
 {
@@ -135,7 +176,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glEnable(GL_DEPTH_TEST);
 	glfwSetWindowSizeCallback(window, windowResizeCallback);
 	glfwSetKeyCallback(window, key_callback);
-
+	loadModel("Anvil Low.fbx");
 	sp = new ShaderProgram("VertexShader.glsl", NULL, "FragmenShader.glsl");
 }
 
@@ -181,6 +222,16 @@ void drawScene(GLFWwindow* window, float position_z,float position_x) {
 		glVertexAttribPointer(sp->a("color"), 4, GL_FLOAT, false, 0, colors); //Wska¿ tablicê z danymi dla atrybutu vertex
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount); //Narysuj obiekt
 	}
+	glm::mat4 M1 = M;
+	M1 = glm::translate(M, glm::vec3(0.0f,0.0f,0.0f));
+	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M1));
+	glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
+	glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, verts.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
+	glEnableVertexAttribArray(sp->a("color"));  //W³¹cz przesy³anie danych do atrybutu vertex
+	glVertexAttribPointer(sp->a("color"), 4, GL_FLOAT, false, 0, colors); //Wska¿ tablicê z danymi dla atrybutu vertex
+	glDrawElements(GL_TRIANGLES,indices.size(), GL_UNSIGNED_INT,indices.data()); //Narysuj obiekt
+
+
 	
 
 	glDisableVertexAttribArray(sp->a("vertex"));  //Wy³¹cz przesy³anie danych do atrybutu vertex

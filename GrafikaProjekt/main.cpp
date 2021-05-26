@@ -12,6 +12,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include "lodepng.h"
 
 ShaderProgram* sp;
 
@@ -34,8 +35,10 @@ std::vector<glm::vec4> norms;
 std::vector<glm::vec2> texCoords1;
 std::vector<unsigned int> indices;
 
+GLuint tex0;
+
 glm::vec3 positionOfCubesArr[] = {glm::vec3(0.0f,0.0f,0.0f),
-								  glm::vec3(-4.0f,-5.0f,0.0f),
+								  glm::vec3(-5.0f,-5.0f,0.0f),
 								  glm::vec3(4.0f,0.0f,0.0f),
 								  glm::vec3(0.0f,4.0f,5.0f),
 								  glm::vec3(2.0f,5.0f,-2.0f),
@@ -76,13 +79,14 @@ void loadModel(std::string fileName ){
 		aiVector3D texCoord = mesh->mTextureCoords[0][i];
 		texCoords1.push_back(glm::vec2(texCoord.x,texCoord.y));
 		
-		for (int i = 0; i < mesh->mNumFaces; i++)
+		
+	}
+	for (int i = 0; i < mesh->mNumFaces; i++)
+	{
+		aiFace& face = mesh->mFaces[i];
+		for (int j = 0; j < face.mNumIndices; j++)
 		{
-			aiFace& face = mesh->mFaces[i];
-			for (int j  = 0; j < face.mNumIndices; j++)
-			{
-				indices.push_back(face.mIndices[j]);
-			}
+			indices.push_back(face.mIndices[j]);
 		}
 	}
 	 
@@ -160,6 +164,29 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 }
 
+GLuint readTexture(const char* filename) {
+	GLuint tex;
+	glActiveTexture(GL_TEXTURE0);
+
+	//Wczytanie do pamiêci komputera
+	std::vector<unsigned char> image;   //Alokuj wektor do wczytania obrazka
+	unsigned width, height;   //Zmienne do których wczytamy wymiary obrazka
+	//Wczytaj obrazek
+	unsigned error = lodepng::decode(image, width, height, filename);
+
+	//Import do pamiêci karty graficznej
+	glGenTextures(1, &tex); //Zainicjuj jeden uchwyt
+	glBindTexture(GL_TEXTURE_2D, tex); //Uaktywnij uchwyt
+	//Wczytaj obrazek do pamiêci KG skojarzonej z uchwytem
+	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0,
+		GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	return tex;
+}
+
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
 	if (height == 0) return;
 	glViewport(0, 0, width, height);
@@ -177,6 +204,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glfwSetWindowSizeCallback(window, windowResizeCallback);
 	glfwSetKeyCallback(window, key_callback);
 	loadModel("Anvil Low.fbx");
+	tex0 = readTexture("bricks.png");
 	sp = new ShaderProgram("VertexShader.glsl", NULL, "FragmenShader.glsl");
 }
 
@@ -194,6 +222,8 @@ void drawScene(GLFWwindow* window, float position_z,float position_x) {
 	//************Tutaj umieszczaj kod rysuj¹cy obraz******************
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	glm::vec4 lp = glm::vec4(0, 10, 0, 1); // Ustalenie wspó³rzêdnyh Ÿród³a œwiata³a
+	glUniform4fv(sp->u("lp"), 1, glm::value_ptr(lp));
 	glm::mat4 V = glm::lookAt(
 		cameraPos,
 		cameraPos+cameraLook,
@@ -218,24 +248,43 @@ void drawScene(GLFWwindow* window, float position_z,float position_x) {
 		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M1));
 		glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
 		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, vertices); //Wska¿ tablicê z danymi dla atrybutu vertex
-		glEnableVertexAttribArray(sp->a("color"));  //W³¹cz przesy³anie danych do atrybutu vertex
-		glVertexAttribPointer(sp->a("color"), 4, GL_FLOAT, false, 0, colors); //Wska¿ tablicê z danymi dla atrybutu vertex
+		glEnableVertexAttribArray(sp->a("color"));  //W³¹cz przesy³anie danych do atrybutu color
+		glVertexAttribPointer(sp->a("color"), 4, GL_FLOAT, false, 0, colors); //Wska¿ tablicê z danymi dla atrybutu color
+		glEnableVertexAttribArray(sp->a("texCoord0"));  //W³¹cz przesy³anie danych do atrybutu texCoord0
+		glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, texCoords); //Wska¿ tablicê z danym dla atrybutu texCoords0
+		glEnableVertexAttribArray(sp->a("normal"));  //W³¹cz przesy³anie danych do atrybutu normal do atrybutu normal
+		glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, normals);//Wska¿ tablicê z danymi dla atrybutu normal
+		
+		glUniform1i(sp->u("textureMap0"), 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex0);
+
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount); //Narysuj obiekt
 	}
-	glm::mat4 M1 = M;
-	M1 = glm::translate(M, glm::vec3(0.0f,0.0f,0.0f));
-	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M1));
-	glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
-	glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, verts.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
-	glEnableVertexAttribArray(sp->a("color"));  //W³¹cz przesy³anie danych do atrybutu vertex
-	glVertexAttribPointer(sp->a("color"), 4, GL_FLOAT, false, 0, colors); //Wska¿ tablicê z danymi dla atrybutu vertex
-	glDrawElements(GL_TRIANGLES,indices.size(), GL_UNSIGNED_INT,indices.data()); //Narysuj obiekt
 
+	//glm::mat4 M1 = M;
+	//M1 = glm::translate(M, glm::vec3(0.0f,0.0f,0.0f));
+	//glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M1));
+	//glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
+	//glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, verts.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
+	//glEnableVertexAttribArray(sp->a("color"));  //W³¹cz przesy³anie danych do atrybutu vertex
+	//glVertexAttribPointer(sp->a("color"), 4, GL_FLOAT, false, 0, colors); //Wska¿ tablicê z danymi dla atrybutu vertex
+	//glEnableVertexAttribArray(sp->a("texCoord0"));  //W³¹cz przesy³anie danych do atrybutu texCoord0
+	//glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, texCoords1.data()); //Wska¿ tablicê z danym dla atrybutu texCoords0
+	//glEnableVertexAttribArray(sp->a("normal"));  //W³¹cz przesy³anie danych do atrybutu normal
+	//glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, norms.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
+	//glDrawElements(GL_TRIANGLES,indices.size(), GL_UNSIGNED_INT,indices.data()); //Narysuj obiekt
+	
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, tex);
+	//glUniform1i(sp->)
 
 	
 
 	glDisableVertexAttribArray(sp->a("vertex"));  //Wy³¹cz przesy³anie danych do atrybutu vertex
 	glDisableVertexAttribArray(sp->a("color"));		//Wy³¹cz przesy³anie danych do atrybutu color
+	glDisableVertexAttribArray(sp->a("normal"));	//Wy³¹cz przesy³anie danych do atrybutu normal
+	glDisableVertexAttribArray(sp->a("texCoord0"));	//Wy³¹cz przesy³anie danych do atrybutu normal
 
 	glfwSwapBuffers(window); //Przerzuæ tylny bufor na przedni
 

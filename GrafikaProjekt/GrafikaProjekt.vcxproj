@@ -150,6 +150,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="shaderProgram.cpp" />
   </ItemGroup>
@@ -158,6 +159,7 @@
     <None Include="VertexShader.glsl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lodepng.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="shaderProgram.h" />

@@ -31,10 +31,12 @@ float* colors = myCubeColors;
 int vertexCount = myCubeVertexCount;
 
 int liczba_obiektow = 0;
-std::vector<glm::vec4> verts[100];
-std::vector<glm::vec4> norms[100];
-std::vector<glm::vec2> texCoords1[100];
-std::vector<unsigned int> indices[100];
+std::vector<glm::vec4> verts;
+std::vector<glm::vec4> norms;
+std::vector<glm::vec2> texCoords1;
+std::vector<unsigned int> indices;
+
+Mesh mesh = Mesh(string("jack.fbx"));
 
 GLuint tex0;
 
@@ -58,84 +60,56 @@ float lastX;
 float lastY;
 bool leftButtonPressed = false;
 
-void loadModel(std::string plik) {
-	using namespace std;
-	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(plik,
-		aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
-	cout << importer.GetErrorString() << endl;
-	aiMesh* mesh = scene->mMeshes[0];
-	aiMesh* mesh1 = scene->mMeshes[2];
-
-	
-	for (int i = 0; i < mesh->mNumVertices; i++) {
-		aiVector3D vertex = mesh->mVertices[i]; //aiVector3D podobny do glm::vec3
-		verts[liczba_obiektow].push_back(glm::vec4(vertex.x, vertex.y, vertex.z, 1));
-
-		aiVector3D normal = mesh->mNormals[i]; //Wektory znormalizowane
-		norms[liczba_obiektow].push_back(glm::vec4(normal.x, normal.y, normal.z, 0));
-
-		//liczba zdefiniowanych zestawów wsp. teksturowania (zestawów jest max 8)
-		//unsigned int liczba_zest = mesh->GetNumUVChannels();
-		//Liczba sk³adowych wsp. teksturowania dla 0 zestawu.
-		//unsigned int wymiar_wsp_tex = mesh->mNumUVComponents[0];
-		//0 to numer zestawu wspó³rzêdnych teksturowania
 
 
-		aiVector3D texCoord = mesh->mTextureCoords[0][i];
-		texCoords1[liczba_obiektow].push_back(glm::vec2(texCoord.x, texCoord.y));
-		//x,y,z wykorzystywane jako u,v,w. 0 je¿eli tekstura ma mniej wymiarów
-
-	}
-
-	//dla ka¿dego wielok¹ta sk³adowego
-	for (int i = 0; i < mesh->mNumFaces; i++) {
-		aiFace& face = mesh->mFaces[i]; //face to jeden z wielok¹tów siatki
-
-		//dla ka¿dego indeksu->wierzcho³ka tworz¹cego wielok¹t
-		//dla aiProcess_Triangulate to zawsze bêdzie 3
-		for (int j = 0; j < face.mNumIndices; j++) {
-			//cout << face.mIndices[j] << " ";
-			indices[liczba_obiektow].push_back(face.mIndices[j]);
-		}
-		//cout << endl;
-	}
-
-	for (int i = 0; i < mesh1->mNumVertices; i++) {
-		aiVector3D vertex = mesh1->mVertices[i]; //aiVector3D podobny do glm::vec3
-		verts[liczba_obiektow].push_back(glm::vec4(vertex.x, vertex.y, vertex.z, 1));
-
-		aiVector3D normal = mesh1->mNormals[i]; //Wektory znormalizowane
-		norms[liczba_obiektow].push_back(glm::vec4(normal.x, normal.y, normal.z, 0));
-
-		//liczba zdefiniowanych zestawów wsp. teksturowania (zestawów jest max 8)
-		//unsigned int liczba_zest = mesh->GetNumUVChannels();
-		//Liczba sk³adowych wsp. teksturowania dla 0 zestawu.
-		//unsigned int wymiar_wsp_tex = mesh->mNumUVComponents[0];
-		//0 to numer zestawu wspó³rzêdnych teksturowania
-
-
-		aiVector3D texCoord = mesh1->mTextureCoords[0][i];
-		texCoords1[liczba_obiektow].push_back(glm::vec2(texCoord.x, texCoord.y));
-		//x,y,z wykorzystywane jako u,v,w. 0 je¿eli tekstura ma mniej wymiarów
-	}
-
-	//dla ka¿dego wielok¹ta sk³adowego
-	for (int i = 0; i < mesh1->mNumFaces; i++) {
-		aiFace& face = mesh1->mFaces[i]; //face to jeden z wielok¹tów siatki
-
-		//dla ka¿dego indeksu->wierzcho³ka tworz¹cego wielok¹t
-		//dla aiProcess_Triangulate to zawsze bêdzie 3
-		for (int j = 0; j < face.mNumIndices; j++) {
-			//cout << face.mIndices[j] << " ";
-			indices[liczba_obiektow].push_back(face.mIndices[j]);
-		}
-		//cout << endl;
-	}
+//void loadModel(std::string plik) {
+//	using namespace std;
+//	Assimp::Importer importer;
+//	const aiScene* scene = importer.ReadFile(plik,
+//		aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
+//	cout << importer.GetErrorString() << endl;
+//
+//	for (int k = 0; k < scene->mNumMeshes; k++)
+//	{
+//		aiMesh* mesh = scene->mMeshes[k];
+//
+//		for (int i = 0; i < mesh->mNumVertices; i++) {
+//			aiVector3D vertex = mesh->mVertices[i]; //aiVector3D podobny do glm::vec3
+//			verts.push_back(glm::vec4(vertex.x, vertex.y, vertex.z, 1));
+//
+//			aiVector3D normal = mesh->mNormals[i]; //Wektory znormalizowane
+//			norms.push_back(glm::vec4(normal.x, normal.y, normal.z, 0));
+//
+//			//liczba zdefiniowanych zestawów wsp. teksturowania (zestawów jest max 8)
+//			//unsigned int liczba_zest = mesh->GetNumUVChannels();
+//			//Liczba sk³adowych wsp. teksturowania dla 0 zestawu.
+//			//unsigned int wymiar_wsp_tex = mesh->mNumUVComponents[0];
+//			//0 to numer zestawu wspó³rzêdnych teksturowania
+//
+//
+//			aiVector3D texCoord = mesh->mTextureCoords[0][i];
+//			texCoords1.push_back(glm::vec2(texCoord.x, texCoord.y));
+//			//x,y,z wykorzystywane jako u,v,w. 0 je¿eli tekstura ma mniej wymiarów
+//
+//		}
+//
+//		//dla ka¿dego wielok¹ta sk³adowego
+//		for (int i = 0; i < mesh->mNumFaces; i++) {
+//			aiFace& face = mesh->mFaces[i]; //face to jeden z wielok¹tów siatki
+//
+//			//dla ka¿dego indeksu->wierzcho³ka tworz¹cego wielok¹t
+//			//dla aiProcess_Triangulate to zawsze bêdzie 3
+//			for (int j = 0; j < face.mNumIndices; j++) {
+//				//cout << face.mIndices[j] << " ";
+//				indices.push_back(face.mIndices[j]);
+//			}
+//			//cout << endl;
+//		}
+//	}
+//
+//}
 
 
-	liczba_obiektow++;
-}
 
 void mouseButtonCallback(GLFWwindow* window, int button,int action, int mods)
 {
@@ -248,7 +222,8 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glEnable(GL_DEPTH_TEST);
 	glfwSetWindowSizeCallback(window, windowResizeCallback);
 	glfwSetKeyCallback(window, key_callback);
-	loadModel(string("Zombie.fbx"));
+	//loadModel(string("fbxPainting.fbx"));
+	//mesh = Mesh(std::string("fbxPainting.fbx"));
 	tex0 = readTexture("bricks.png");
 	sp = new ShaderProgram("VertexShader.glsl", NULL, "FragmenShader.glsl");
 }
@@ -306,23 +281,25 @@ void drawScene(GLFWwindow* window, float position_z,float position_x) {
 
 	//	glDrawArrays(GL_TRIANGLES, 0, vertexCount); //Narysuj obiekt
 	//}
-
-	glm::mat4 M1 = M;
-	//M1 = glm::translate(M, glm::vec3(0.0f,0.0f,0.0f));
-	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M1));
-	glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
-	glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, verts[0].data()); //Wska¿ tablicê z danymi dla atrybutu vertex
-	glEnableVertexAttribArray(sp->a("texCoord1"));  //W³¹cz przesy³anie danych do atrybutu vertex
-	glVertexAttribPointer(sp->a("texCoord1"), 4, GL_FLOAT, false, 0, texCoords1[0].data()); //Wska¿ tablicê z danymi dla atrybutu vertex
-	glEnableVertexAttribArray(sp->a("normal"));  //W³¹cz przesy³anie danych do atrybutu vertex
-	glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, norms[0].data()); //Wska¿ tablicê z danymi dla atrybutu vertex
-
 	
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex0);
-	glUniform1i(sp->u("textureMap0"), 0);
+		glm::mat4 M1 = M;
+		//M1 = glm::translate(M, glm::vec3(0.0f,0.0f,0.0f));
+		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M1));
+		glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
+		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, mesh.vertices.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
+		glEnableVertexAttribArray(sp->a("texCoord1"));  //W³¹cz przesy³anie danych do atrybutu vertex
+		glVertexAttribPointer(sp->a("texCoord1"), 4, GL_FLOAT, false, 0, mesh.textures.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
+		glEnableVertexAttribArray(sp->a("normal"));  //W³¹cz przesy³anie danych do atrybutu vertex
+		glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, mesh.textures.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
 
-	glDrawElements(GL_TRIANGLES, indices[0].size(), GL_UNSIGNED_INT, indices[0].data()); //Narysuj obiekt
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex0);
+		glUniform1i(sp->u("textureMap0"), 0);
+
+		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, mesh.indices.data()); //Narysuj obiekt
+	
+	
 
 
 	glDisableVertexAttribArray(sp->a("vertex"));  //Wy³¹cz przesy³anie danych do atrybutu vertex

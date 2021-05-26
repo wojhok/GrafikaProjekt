@@ -7,123 +7,82 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
-#include <vector>
-#include <string>
 #include "Model.h"
 #include "shaderProgram.h"
-using namespace std;
+#include "Mesh.h"
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include "lodepng.h"
 using namespace glm;
 
 //Klasa Mesh - jeden element wczytywanego obiektu np noga broñ itp itd
 
-struct Vertex {
-    vec3 Position;
-    vec3 Normal;   
-    vec2 TexCoords;
-    vec3 Tangent;
-    vec3 Bitangent;
-};
-
-struct Texture {
-    unsigned int id;
-    string type;
-    string path;
-};
 
 class Mesh {
 public:
     // mesh dane
-    vector<Vertex>       vertices;
-    vector<unsigned int> indices;
-    vector<Texture>      textures;
-    unsigned int VAO;
+	std::vector<glm::vec4> vertices;
+	std::vector<glm::vec4> norms;
+	std::vector<glm::vec2> textures;
+	std::vector<unsigned int> indices;
+	std::string plik;
 
     // konstruktor
-    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
+    Mesh(std::string plik)
     {
-        this->vertices = vertices;
-        this->indices = indices;
-        this->textures = textures;
+		this->plik = plik;
 
         // settowanie bufferów i pointerów.
-        setupMesh();
+        loadModel();
     }
 
     // renderowanie mesha
-    void Draw(ShaderProgram& shader)
-    {
-        // przypisanie tekstur
-        unsigned int diffuseNr = 1;
-        unsigned int specularNr = 1;
-        unsigned int normalNr = 1;
-        unsigned int heightNr = 1;
-        for (unsigned int i = 0; i < textures.size(); i++)
-        {
-            glActiveTexture(GL_TEXTURE0 + i); // aktywowanie tekstury z ka¿da iteracja kolejna tekstura w ten sposób niewa¿ne ile obiekt ich ma wszyskie wczytamy
-            string number;
-            string name = textures[i].type;
-            if (name == "texture_diffuse")
-                number = to_string(diffuseNr++);
-            else if (name == "texture_specular")
-                number = to_string(specularNr++); 
-            else if (name == "texture_normal")
-                number = to_string(normalNr++); 
-            else if (name == "texture_height")
-                number = to_string(heightNr++); 
+	void loadModel() {
+		using namespace std;
+		Assimp::Importer importer;
+		const aiScene* scene = importer.ReadFile(this->plik,
+			aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
+		cout << importer.GetErrorString() << endl;
 
-            
-            glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
-            // bindowanie tekstury
-            glBindTexture(GL_TEXTURE_2D, textures[i].id); //(typ, teksura wczytywana po ID)
-        }
+		for (int k = 0; k < scene->mNumMeshes; k++)
+		{
+			aiMesh* mesh = scene->mMeshes[k];
 
-        // rysowanie mesha
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
+			for (int i = 0; i < mesh->mNumVertices; i++) {
+				aiVector3D vertex = mesh->mVertices[i]; //aiVector3D podobny do glm::vec3
+				vertices.push_back(glm::vec4(vertex.x, vertex.y, vertex.z, 1));
 
-        // zamykanie
-        glActiveTexture(GL_TEXTURE0);
-    }
+				aiVector3D normal = mesh->mNormals[i]; //Wektory znormalizowane
+				norms.push_back(glm::vec4(normal.x, normal.y, normal.z, 0));
 
-private:
-    unsigned int VBO, EBO; //vertex buffer object i element buffer object
+				//liczba zdefiniowanych zestawów wsp. teksturowania (zestawów jest max 8)
+				//unsigned int liczba_zest = mesh->GetNumUVChannels();
+				//Liczba sk³adowych wsp. teksturowania dla 0 zestawu.
+				//unsigned int wymiar_wsp_tex = mesh->mNumUVComponents[0];
+				//0 to numer zestawu wspó³rzêdnych teksturowania
 
-    // wczytywanie wszystkich wektorów
-    void setupMesh()
-    {
-        //towrzenie wektorów/bufferów 
-        glGenVertexArrays(1, &VAO); //(liczba arrayów, gdzie przypisaæ id arraya)
-        glGenBuffers(1, &VBO); //to samo co array tylko dla bufferów
-        glGenBuffers(1, &EBO);
 
-        glBindVertexArray(VAO); //wi¹¿e vertex arraya ze zmienn¹ 
-        // wczytywanie danych do bufera
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        //alokowanie pamiêci i storowanie w buferze (target buffer, rozmiar, co ma byæ skopiowane do buffora, funkcja rysowania)
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+				aiVector3D texCoord = mesh->mTextureCoords[0][i];
+				textures.push_back(glm::vec2(texCoord.x, texCoord.y));
+				//x,y,z wykorzystywane jako u,v,w. 0 je¿eli tekstura ma mniej wymiarów
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+			}
 
-        //pointery
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0); //(indeks, rozmiar, typ, czy znormalizowany, krok, pointer)
-        //normalne 
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-        //koordy textur
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
-        //tangent
-        glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
-        //bitangent
-        glEnableVertexAttribArray(4);
-        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent)); //offset(struct, nazwa structa)
+			//dla ka¿dego wielok¹ta sk³adowego
+			for (int i = 0; i < mesh->mNumFaces; i++) {
+				aiFace& face = mesh->mFaces[i]; //face to jeden z wielok¹tów siatki
 
-        glBindVertexArray(0);
-    }
+				//dla ka¿dego indeksu->wierzcho³ka tworz¹cego wielok¹t
+				//dla aiProcess_Triangulate to zawsze bêdzie 3
+				for (int j = 0; j < face.mNumIndices; j++) {
+					//cout << face.mIndices[j] << " ";
+					indices.push_back(face.mIndices[j]);
+				}
+				//cout << "h";
+			}
+		}
+	}
 };
 
 

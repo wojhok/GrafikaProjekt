@@ -156,11 +156,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="FragmenShader.glsl" />
+    <None Include="ModelFS.glsl" />
+    <None Include="ModelVS.glsl" />
     <None Include="VertexShader.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Cube.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="shaderProgram.h" />
   </ItemGroup>

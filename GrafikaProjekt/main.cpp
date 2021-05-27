@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include "Model.h"
+#include "Cube.h"
 #include "shaderProgram.h"
 #include "Mesh.h"
 #include <assimp/Importer.hpp>
@@ -15,6 +16,7 @@
 #include "lodepng.h"
 
 ShaderProgram* sp;
+ShaderProgram* sp1;
 
 using namespace glm;
 using namespace std;
@@ -36,9 +38,10 @@ std::vector<glm::vec4> norms;
 std::vector<glm::vec2> texCoords1;
 std::vector<unsigned int> indices;
 
-Mesh mesh = Mesh(string("jack.fbx"));
+Model modelObraz = Model(string("fbxPainting.fbx"),0.11f);
 
 GLuint tex0;
+GLuint tex1;
 
 glm::vec3 positionOfCubesArr[] = {glm::vec3(0.0f,0.0f,0.0f),
 								  glm::vec3(-5.0f,-5.0f,0.0f),
@@ -59,57 +62,6 @@ bool firstMouse = true; // czy mysz klikniêta
 float lastX; 
 float lastY;
 bool leftButtonPressed = false;
-
-
-
-//void loadModel(std::string plik) {
-//	using namespace std;
-//	Assimp::Importer importer;
-//	const aiScene* scene = importer.ReadFile(plik,
-//		aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
-//	cout << importer.GetErrorString() << endl;
-//
-//	for (int k = 0; k < scene->mNumMeshes; k++)
-//	{
-//		aiMesh* mesh = scene->mMeshes[k];
-//
-//		for (int i = 0; i < mesh->mNumVertices; i++) {
-//			aiVector3D vertex = mesh->mVertices[i]; //aiVector3D podobny do glm::vec3
-//			verts.push_back(glm::vec4(vertex.x, vertex.y, vertex.z, 1));
-//
-//			aiVector3D normal = mesh->mNormals[i]; //Wektory znormalizowane
-//			norms.push_back(glm::vec4(normal.x, normal.y, normal.z, 0));
-//
-//			//liczba zdefiniowanych zestawów wsp. teksturowania (zestawów jest max 8)
-//			//unsigned int liczba_zest = mesh->GetNumUVChannels();
-//			//Liczba sk³adowych wsp. teksturowania dla 0 zestawu.
-//			//unsigned int wymiar_wsp_tex = mesh->mNumUVComponents[0];
-//			//0 to numer zestawu wspó³rzêdnych teksturowania
-//
-//
-//			aiVector3D texCoord = mesh->mTextureCoords[0][i];
-//			texCoords1.push_back(glm::vec2(texCoord.x, texCoord.y));
-//			//x,y,z wykorzystywane jako u,v,w. 0 je¿eli tekstura ma mniej wymiarów
-//
-//		}
-//
-//		//dla ka¿dego wielok¹ta sk³adowego
-//		for (int i = 0; i < mesh->mNumFaces; i++) {
-//			aiFace& face = mesh->mFaces[i]; //face to jeden z wielok¹tów siatki
-//
-//			//dla ka¿dego indeksu->wierzcho³ka tworz¹cego wielok¹t
-//			//dla aiProcess_Triangulate to zawsze bêdzie 3
-//			for (int j = 0; j < face.mNumIndices; j++) {
-//				//cout << face.mIndices[j] << " ";
-//				indices.push_back(face.mIndices[j]);
-//			}
-//			//cout << endl;
-//		}
-//	}
-//
-//}
-
-
 
 void mouseButtonCallback(GLFWwindow* window, int button,int action, int mods)
 {
@@ -225,7 +177,9 @@ void initOpenGLProgram(GLFWwindow* window) {
 	//loadModel(string("fbxPainting.fbx"));
 	//mesh = Mesh(std::string("fbxPainting.fbx"));
 	tex0 = readTexture("bricks.png");
+	tex1 = readTexture("painting.png");
 	sp = new ShaderProgram("VertexShader.glsl", NULL, "FragmenShader.glsl");
+	//sp1 = new ShaderProgram("ModelVS.glsl", NULL, "ModelFS.glsl");
 }
 
 
@@ -242,7 +196,7 @@ void drawScene(GLFWwindow* window, float position_z,float position_x) {
 	//************Tutaj umieszczaj kod rysuj¹cy obraz******************
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glm::vec4 lp = glm::vec4(0, 20, -5, 1); // Ustalenie wspó³rzêdnyh Ÿród³a œwiata³a
+	glm::vec4 lp = glm::vec4(0, 3, -100, 1); // Ustalenie wspó³rzêdnyh Ÿród³a œwiata³a
 	glUniform4fv(sp->u("lp"), 1, glm::value_ptr(lp));
 	glm::mat4 V = glm::lookAt(
 		cameraPos,
@@ -261,19 +215,19 @@ void drawScene(GLFWwindow* window, float position_z,float position_x) {
 	//M = glm::rotate(M, angle_x, glm::vec3(0.0f, 1.0f, 0.0f)); //Wylicz macierz modelu
 
 	sp->use();//Aktywacja programu cieniuj¹cego
-	//for (int i = 0; i < 6; i++) //Rysowanie 6 szeœcianów
+	//for (int i = 0; i < 6; i++) 
 	//{
 	//	glm::mat4 M1 = M;
 	//	M1 = glm::translate(M, positionOfCubesArr[i]);
 	//	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M1));
-	//	glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
-	//	glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, vertices); //Wska¿ tablicê z danymi dla atrybutu vertex
-	//	glEnableVertexAttribArray(sp->a("color"));  //W³¹cz przesy³anie danych do atrybutu color
-	//	glVertexAttribPointer(sp->a("color"), 4, GL_FLOAT, false, 0, colors); //Wska¿ tablicê z danymi dla atrybutu color
-	//	glEnableVertexAttribArray(sp->a("texCoord0"));  //W³¹cz przesy³anie danych do atrybutu texCoord0
-	//	glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, texCoords); //Wska¿ tablicê z danym dla atrybutu texCoords0
-	//	glEnableVertexAttribArray(sp->a("normal"));  //W³¹cz przesy³anie danych do atrybutu normal do atrybutu normal
-	//	glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, normals);//Wska¿ tablicê z danymi dla atrybutu normal
+	//	glEnableVertexAttribArray(sp->a("vertex"));  
+	//	glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, vertices); 
+	//	glEnableVertexAttribArray(sp->a("color"));  
+	//	glVertexAttribPointer(sp->a("color"), 4, GL_FLOAT, false, 0, colors); 
+	//	glEnableVertexAttribArray(sp->a("texCoord0"));  
+	//	glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, texCoords); 
+	//	glEnableVertexAttribArray(sp->a("normal"));  
+	//	glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, normals);
 	//	
 	//	glUniform1i(sp->u("textureMap0"), 0);
 	//	glActiveTexture(GL_TEXTURE0);
@@ -281,23 +235,26 @@ void drawScene(GLFWwindow* window, float position_z,float position_x) {
 
 	//	glDrawArrays(GL_TRIANGLES, 0, vertexCount); //Narysuj obiekt
 	//}
-	
+	for (int i = 0; i < modelObraz.meshes.size(); i++)
+	{
 		glm::mat4 M1 = M;
 		//M1 = glm::translate(M, glm::vec3(0.0f,0.0f,0.0f));
 		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M1));
 		glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
-		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, mesh.vertices.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
+		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, modelObraz.meshes[i].vertices.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
 		glEnableVertexAttribArray(sp->a("texCoord1"));  //W³¹cz przesy³anie danych do atrybutu vertex
-		glVertexAttribPointer(sp->a("texCoord1"), 4, GL_FLOAT, false, 0, mesh.textures.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
+		glVertexAttribPointer(sp->a("texCoord1"), 4, GL_FLOAT, false, 0, modelObraz.meshes[i].textures.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
 		glEnableVertexAttribArray(sp->a("normal"));  //W³¹cz przesy³anie danych do atrybutu vertex
-		glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, mesh.textures.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
+		glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, modelObraz.meshes[i].norms.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
 
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex0);
 		glUniform1i(sp->u("textureMap0"), 0);
 
-		glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, mesh.indices.data()); //Narysuj obiekt
+		glDrawElements(GL_TRIANGLES, modelObraz.meshes[i].indices.size(), GL_UNSIGNED_INT, modelObraz.meshes[i].indices.data()); //Narysuj obiekt
+	}
+		
 	
 	
 

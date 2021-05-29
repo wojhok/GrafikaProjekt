@@ -16,6 +16,8 @@
 #include "lodepng.h"
 #include "Camera.h"
 #include "keyboard.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 ShaderProgram* sp;
 ShaderProgram* sp1;
@@ -42,7 +44,7 @@ std::vector<glm::vec4> norms;
 std::vector<glm::vec2> texCoords1;
 std::vector<unsigned int> indices;
 
-Model modelObraz = Model(string("Abstract-Painting_Monumental-Figure.fbx"),0.11f);
+Model modelObraz = Model(string("fbxPainting.fbx"),1.0f);
 
 GLuint tex0;
 GLuint tex1;
@@ -129,23 +131,53 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 }
 
+//GLuint readTexture(const char* filename) {
+//	GLuint tex;
+//	glActiveTexture(GL_TEXTURE0);
+//
+//	std::vector<unsigned char> image;   
+//	unsigned width, height;   
+//	unsigned error = lodepng::decode(image, width, height, filename);
+//
+//	glGenTextures(1, &tex); //Zainicjuj jeden uchwyt
+//	glBindTexture(GL_TEXTURE_2D, tex); //Uaktywnij uchwyt
+//	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0,
+//		GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
+//
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//
+//	return tex;
+//}
+
+
 GLuint readTexture(const char* filename) {
-	GLuint tex;
-	glActiveTexture(GL_TEXTURE0);
-
-	std::vector<unsigned char> image;   
-	unsigned width, height;   
-	unsigned error = lodepng::decode(image, width, height, filename);
-
-	glGenTextures(1, &tex); //Zainicjuj jeden uchwyt
-	glBindTexture(GL_TEXTURE_2D, tex); //Uaktywnij uchwyt
-	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0,
-		GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
-
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+	// set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set texture filtering parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// load image, create texture and generate mipmaps
+	int width, height, nrChannels;
+	// The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
+	unsigned char* data = stbi_load(filename, &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
 
-	return tex;
+
+	return texture;
 }
 
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
@@ -166,8 +198,8 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glfwSetKeyCallback(window, key_callback);
 	//loadModel(string("fbxPainting.fbx"));
 	//mesh = Mesh(std::string("fbxPainting.fbx"));
-	tex0 = readTexture("kostki.png");
-	tex1 = readTexture("bricks.png");
+	tex0 = readTexture("painting.png");
+	//tex1 = readTexture("bricks.png");
 	sp = new ShaderProgram("VertexShader.glsl", NULL, "FragmenShader.glsl");
 	//sp1 = new ShaderProgram("ModelVS.glsl", NULL, "ModelFS.glsl");
 }
@@ -225,22 +257,27 @@ void drawScene(GLFWwindow* window, float position_z,float position_x, Camera cam
 	for (int i = 0; i < modelObraz.meshes.size(); i++)
 	{
 		glm::mat4 M1 = M;
-		M1 = glm::scale(M1, glm::vec3(0.001f,0.001f,0.001f));
+		M1 = glm::scale(M1, glm::vec3(0.1f,0.1f,0.1f));
 		//M1 = glm::translate(M, glm::vec3(0.0f,0.0f,0.0f));
 		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M1));
 		glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
 		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, modelObraz.meshes[i].vertices.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
-		glEnableVertexAttribArray(sp->a("texCoord0"));  //W³¹cz przesy³anie danych do atrybutu vertex
-		glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, modelObraz.meshes[i].textures.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
+		
+		if (i == 0) {
+			glEnableVertexAttribArray(sp->a("texCoord0"));  //W³¹cz przesy³anie danych do atrybutu vertex
+			glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, modelObraz.meshes[i].textures.data());
+		}
+		//Wska¿ tablicê z danymi dla atrybutu vertex
 		glEnableVertexAttribArray(sp->a("normal"));  //W³¹cz przesy³anie danych do atrybutu vertex
 		glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, modelObraz.meshes[i].norms.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
 
-		if (i == 0)
-		{
-			glUniform1i(sp->u("textureMap0"), 0);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, tex0);
-		}
+		
+		glUniform1i(sp->u("textureMap0"), 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex0);
+		
+		
+		
 
 		glDrawElements(GL_TRIANGLES, modelObraz.meshes[i].indices.size(), GL_UNSIGNED_INT, modelObraz.meshes[i].indices.data()); //Narysuj obiekt
 	}

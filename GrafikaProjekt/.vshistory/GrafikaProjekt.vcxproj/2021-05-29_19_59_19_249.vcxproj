@@ -168,7 +168,6 @@
     <ClInclude Include="Cube.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Quad.h" />
-    <ClInclude Include="Room.h" />
     <ClInclude Include="shaderProgram.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>

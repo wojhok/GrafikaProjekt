@@ -42,7 +42,6 @@ float* texCoords = myCubeTexCoords;
 float* colors = myCubeColors;
 int vertexCount = myCubeVertexCount;
 std::vector<GLuint> texRoom;
-std::vector<GLuint> texPainting;
 
 
 
@@ -209,10 +208,6 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glEnable(GL_DEPTH_TEST);
 	glfwSetWindowSizeCallback(window, windowResizeCallback);
 	glfwSetKeyCallback(window, key_callback);
-	
-	texPainting.push_back(readTexturePNG("Black.PNG"));
-	texPainting.push_back(readTextureJPG("painting.png"));
-	texPainting.push_back(readTexturePNG("Black.PNG"));
 	tex0 = readTextureJPG("painting.png");
 	tex1 = readTexturePNG("bricks.png");
 	sp = new ShaderProgram("VertexShader.glsl", NULL, "FragmenShader.glsl");
@@ -292,7 +287,7 @@ void drawScene(GLFWwindow* window, float position_z,float position_x, Camera cam
 
 		glUniform1i(sp->u("textureMap0"), 0);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texPainting[i]);
+		glBindTexture(GL_TEXTURE_2D, tex0);
 		
 		
 		

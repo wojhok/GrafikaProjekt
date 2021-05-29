@@ -1,8 +1,8 @@
-#pragma once
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
+
 
 class Quad
 {
@@ -12,7 +12,6 @@ public:
     std::vector<float> texCoords;
     //Tablica wektorów normalnych
     std::vector<float> normals;
-    int vertexCount;
     Quad()
     {
         verts = {
@@ -25,8 +24,8 @@ public:
             -1.0f, 1.0f,0.0f,1.0f }; //B;
 
         texCoords = {
-                50.0f, 0.0f, 0.0f, 50.0f, 0.0f, 0.0f, //ABC
-                50.0f, 0.0f, 50.0f, 50.0f, 0.0f, 50.0f, //ADB
+                1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, //ABC
+                1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, //ADB
                     };
         normals = {
                0.0f,0.0f,1.0f,0.0f, //A
@@ -37,7 +36,6 @@ public:
                0.0f,0.0f,1.0f,0.0f, //D
                0.0f,0.0f,1.0f,0.0f, //B
                 };
-        vertexCount = 6;
     }
 };
 

@@ -42,7 +42,6 @@ float* texCoords = myCubeTexCoords;
 float* colors = myCubeColors;
 int vertexCount = myCubeVertexCount;
 std::vector<GLuint> texRoom;
-std::vector<GLuint> texPainting;
 
 
 
@@ -155,7 +154,7 @@ GLuint readTexturePNG(const char* filename) {
 }
 
 
-GLuint readTextureJPG(const char* filename) {
+GLuint readTexture(const char* filename) {
 	unsigned int texture;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
@@ -192,29 +191,25 @@ void error_callback(int error, const char* description) {
 
 void initOpenGLProgram(GLFWwindow* window) {
 	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	//************Tutaj umieszczaj kod, który nale¿y wykonaæ raz, na pocz¹tku programu************
-	texRoom.push_back(readTextureJPG("ceil.jpg"));
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	texRoom.push_back(readTextureJPG("floor.jpg"));
+	texRoom.push_back(readTexture("ceil.jpg"));
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	texRoom.push_back(readTexture("floor.jpg"));
 	for (int i = 0; i < 5; i++)
 	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-		texRoom.push_back(readTextureJPG("wall.jpg"));
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+		texRoom.push_back(readTexture("wall.jpg"));
 	}
 	glClearColor(0, 0, 0, 1);
 	glEnable(GL_DEPTH_TEST);
 	glfwSetWindowSizeCallback(window, windowResizeCallback);
 	glfwSetKeyCallback(window, key_callback);
-	
-	texPainting.push_back(readTexturePNG("Black.PNG"));
-	texPainting.push_back(readTextureJPG("painting.png"));
-	texPainting.push_back(readTexturePNG("Black.PNG"));
-	tex0 = readTextureJPG("painting.png");
-	tex1 = readTexturePNG("bricks.png");
+	tex0 = readTexture("painting.png");
+	tex1 = readTexture("bricks.png");
 	sp = new ShaderProgram("VertexShader.glsl", NULL, "FragmenShader.glsl");
 	//sp1 = new ShaderProgram("ModelVS.glsl", NULL, "ModelFS.glsl");
 }
@@ -264,9 +259,9 @@ void drawScene(GLFWwindow* window, float position_z,float position_x, Camera cam
 
 		glUniform1i(sp->u("textureMap0"), 0);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texRoom[i]);
+		glBindTexture(GL_TEXTURE_2D, tex0);
 
-		glDrawArrays(GL_TRIANGLES, 0, room.quads[i].vertexCount); //Narysuj obiekt
+		glDrawArrays(GL_TRIANGLES, 0, texRoom[i]); //Narysuj obiekt
 
 		glDisableVertexAttribArray(sp->a("vertex"));  //Wy³¹cz przesy³anie danych do atrybutu vertex
 		glDisableVertexAttribArray(sp->a("texCoord0"));
@@ -292,7 +287,7 @@ void drawScene(GLFWwindow* window, float position_z,float position_x, Camera cam
 
 		glUniform1i(sp->u("textureMap0"), 0);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texPainting[i]);
+		glBindTexture(GL_TEXTURE_2D, tex0);
 		
 		
 		

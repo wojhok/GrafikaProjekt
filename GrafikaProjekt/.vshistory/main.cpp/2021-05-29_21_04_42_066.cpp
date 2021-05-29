@@ -16,11 +16,9 @@
 #include "lodepng.h"
 #include "Camera.h"
 #include "keyboard.h"
-#include "Quad.h"
-#include "Room.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-
+#include "Quad.h"
 
 ShaderProgram* sp;
 ShaderProgram* sp1;
@@ -41,10 +39,9 @@ float* normals = myCubeNormals;
 float* texCoords = myCubeTexCoords;
 float* colors = myCubeColors;
 int vertexCount = myCubeVertexCount;
-std::vector<GLuint> texRoom;
-std::vector<GLuint> texPainting;
 
-
+//Quad
+std::vector<Quad> quadWalls;
 
 
 
@@ -135,27 +132,27 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 }
 
-GLuint readTexturePNG(const char* filename) {
-	GLuint tex;
-	glActiveTexture(GL_TEXTURE0);
+//GLuint readTexture(const char* filename) {
+//	GLuint tex;
+//	glActiveTexture(GL_TEXTURE0);
+//
+//	std::vector<unsigned char> image;   
+//	unsigned width, height;   
+//	unsigned error = lodepng::decode(image, width, height, filename);
+//
+//	glGenTextures(1, &tex); //Zainicjuj jeden uchwyt
+//	glBindTexture(GL_TEXTURE_2D, tex); //Uaktywnij uchwyt
+//	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0,
+//		GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
+//
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//
+//	return tex;
+//}
 
-	std::vector<unsigned char> image;   
-	unsigned width, height;   
-	unsigned error = lodepng::decode(image, width, height, filename);
 
-	glGenTextures(1, &tex); //Zainicjuj jeden uchwyt
-	glBindTexture(GL_TEXTURE_2D, tex); //Uaktywnij uchwyt
-	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0,
-		GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	return tex;
-}
-
-
-GLuint readTextureJPG(const char* filename) {
+GLuint readTexture(const char* filename) {
 	unsigned int texture;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
@@ -174,6 +171,10 @@ GLuint readTextureJPG(const char* filename) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
 	stbi_image_free(data);
 
 
@@ -191,30 +192,13 @@ void error_callback(int error, const char* description) {
 }
 
 void initOpenGLProgram(GLFWwindow* window) {
-	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	//************Tutaj umieszczaj kod, który nale¿y wykonaæ raz, na pocz¹tku programu************
-	texRoom.push_back(readTextureJPG("ceil.jpg"));
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	texRoom.push_back(readTextureJPG("floor.jpg"));
-	for (int i = 0; i < 5; i++)
-	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-		texRoom.push_back(readTextureJPG("wall.jpg"));
-	}
 	glClearColor(0, 0, 0, 1);
 	glEnable(GL_DEPTH_TEST);
 	glfwSetWindowSizeCallback(window, windowResizeCallback);
 	glfwSetKeyCallback(window, key_callback);
-	
-	texPainting.push_back(readTexturePNG("Black.PNG"));
-	texPainting.push_back(readTextureJPG("painting.png"));
-	texPainting.push_back(readTexturePNG("Black.PNG"));
-	tex0 = readTextureJPG("painting.png");
-	tex1 = readTexturePNG("bricks.png");
+	tex0 = readTexture("painting.png");
+	tex1 = readTexture("bricks.png");
 	sp = new ShaderProgram("VertexShader.glsl", NULL, "FragmenShader.glsl");
 	//sp1 = new ShaderProgram("ModelVS.glsl", NULL, "ModelFS.glsl");
 }
@@ -244,64 +228,82 @@ void drawScene(GLFWwindow* window, float position_z,float position_x, Camera cam
 	glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
 
 	glm::mat4 M = glm::mat4(1.0f);
-	sp->use();//Aktywacja programu cieniuj¹cego	
-	Room room = Room(M);
 	
-	for (int i = 0; i < 6; i++)
-	{
-		
-		mat4 M1 = M;
-		M1 = glm::translate(M1, room.translates[i]);
-		M1 = glm::rotate(M1, room.rotates[i].angle, room.rotates[i].axis);
-		M1 = glm::scale(M1, vec3(50.0f, 50.0f, 50.0f));
-		glUniformMatrix4fv(sp->u("M"), 1, false, value_ptr(M1));
-		glEnableVertexAttribArray(sp->a("vertex"));
-		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, room.quads[i].verts.data());
-		glEnableVertexAttribArray(sp->a("texCoord0"));
-		glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, room.quads[i].texCoords.data());
-		glEnableVertexAttribArray(sp->a("normal"));
-		glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, room.quads[i].normals.data());
-
-		glUniform1i(sp->u("textureMap0"), 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texRoom[i]);
-
-		glDrawArrays(GL_TRIANGLES, 0, room.quads[i].vertexCount); //Narysuj obiekt
-
-		glDisableVertexAttribArray(sp->a("vertex"));  //Wy³¹cz przesy³anie danych do atrybutu vertex
-		glDisableVertexAttribArray(sp->a("texCoord0"));
-		glDisableVertexAttribArray(sp->a("normal"));
-	}
-	
-	for (int i = 0; i < modelObraz.meshes.size(); i++)
+	//M = glm::rotate(M, angle_y, glm::vec3(1.0f, 0.0f, 0.0f)); //obrót wokó³ osi X uk³adu
+	//M = glm::rotate(M, angle_x, glm::vec3(0.0f, 1.0f, 0.0f)); //Wylicz macierz modelu
+	sp->use();//Aktywacja programu cieniuj¹cego
+	for (int i = 0; i < quadWalls.size(); i++)
 	{
 		glm::mat4 M1 = M;
-		M1 = glm::scale(M1, glm::vec3(0.1f,0.1f,0.1f));
-		//M1 = glm::translate(M, glm::vec3(0.0f,0.0f,0.0f));
+		//M1 = glm::translate(M, positionOfCubesArr[i]);
 		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M1));
-		glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
-		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, modelObraz.meshes[i].vertices.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
-		
-		if (i == 1) {
-			glEnableVertexAttribArray(sp->a("texCoord0"));  //W³¹cz przesy³anie danych do atrybutu vertex
-			glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, modelObraz.meshes[i].textures.data());
-		}
-		//Wska¿ tablicê z danymi dla atrybutu vertex
-		glEnableVertexAttribArray(sp->a("normal"));  //W³¹cz przesy³anie danych do atrybutu vertex
-		glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, modelObraz.meshes[i].norms.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
+		glEnableVertexAttribArray(sp->a("vertex"));
+		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, quadWalls[i].verts.data());
+		glEnableVertexAttribArray(sp->a("texCoord0"));
+		glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, quadWalls[i].texCoords.data());
+		glEnableVertexAttribArray(sp->a("normal"));
+		glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, quadWalls[i].normals.data());
 
 		glUniform1i(sp->u("textureMap0"), 0);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texPainting[i]);
-		
-		
-		
+		glBindTexture(GL_TEXTURE_2D, tex0);
 
-		glDrawElements(GL_TRIANGLES, modelObraz.meshes[i].indices.size(), GL_UNSIGNED_INT, modelObraz.meshes[i].indices.data()); //Narysuj obiekt
+		glDrawArrays(GL_TRIANGLES, 0, vertexCount); //Narysuj obiekt
+
 		glDisableVertexAttribArray(sp->a("vertex"));  //Wy³¹cz przesy³anie danych do atrybutu vertex
 		glDisableVertexAttribArray(sp->a("texCoord0"));
 		glDisableVertexAttribArray(sp->a("normal"));
 	}
+	
+	//for (int i = 0; i < 6; i++) 
+	//{
+	//	glm::mat4 M1 = M;
+	//	M1 = glm::translate(M, positionOfCubesArr[i]);
+	//	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M1));
+	//	glEnableVertexAttribArray(sp->a("vertex"));  
+	//	glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, vertices); 
+	//	glEnableVertexAttribArray(sp->a("color"));  
+	//	glVertexAttribPointer(sp->a("color"), 4, GL_FLOAT, false, 0, colors); 
+	//	glEnableVertexAttribArray(sp->a("texCoord0"));  
+	//	glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, texCoords); 
+	//	glEnableVertexAttribArray(sp->a("normal"));  
+	//	glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, normals);
+	//	
+	//	glUniform1i(sp->u("textureMap0"), 0);
+	//	glActiveTexture(GL_TEXTURE0);
+	//	glBindTexture(GL_TEXTURE_2D, tex0);
+
+	//	glDrawArrays(GL_TRIANGLES, 0, vertexCount); //Narysuj obiekt
+	//}
+	//for (int i = 0; i < modelObraz.meshes.size(); i++)
+	//{
+	//	glm::mat4 M1 = M;
+	//	M1 = glm::scale(M1, glm::vec3(0.1f,0.1f,0.1f));
+	//	//M1 = glm::translate(M, glm::vec3(0.0f,0.0f,0.0f));
+	//	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M1));
+	//	glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
+	//	glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, modelObraz.meshes[i].vertices.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
+	//	
+	//	if (i == 1) {
+	//		glEnableVertexAttribArray(sp->a("texCoord0"));  //W³¹cz przesy³anie danych do atrybutu vertex
+	//		glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, modelObraz.meshes[i].textures.data());
+	//	}
+	//	//Wska¿ tablicê z danymi dla atrybutu vertex
+	//	glEnableVertexAttribArray(sp->a("normal"));  //W³¹cz przesy³anie danych do atrybutu vertex
+	//	glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, modelObraz.meshes[i].norms.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
+
+	//	glUniform1i(sp->u("textureMap0"), 0);
+	//	glActiveTexture(GL_TEXTURE0);
+	//	glBindTexture(GL_TEXTURE_2D, tex0);
+	//	
+	//	
+	//	
+
+	//	glDrawElements(GL_TRIANGLES, modelObraz.meshes[i].indices.size(), GL_UNSIGNED_INT, modelObraz.meshes[i].indices.data()); //Narysuj obiekt
+	//	glDisableVertexAttribArray(sp->a("vertex"));  //Wy³¹cz przesy³anie danych do atrybutu vertex
+	//	glDisableVertexAttribArray(sp->a("texCoord0"));
+	//	glDisableVertexAttribArray(sp->a("normal"));
+	//}
 		
 	
 	glDisableVertexAttribArray(sp->a("vertex"));  //Wy³¹cz przesy³anie danych do atrybutu vertex
@@ -315,7 +317,10 @@ void drawScene(GLFWwindow* window, float position_z,float position_x, Camera cam
 
 int main()
 {
-	
+	for (int i = 0; i < 6; i++)
+	{
+		quadWalls.push_back(Quad());
+	}
 	GLFWwindow* window; //WskaŸnik na obiekt reprezentuj¹cy okno
 
 	glfwSetErrorCallback(error_callback);//Zarejestruj procedurê obs³ugi b³êdów

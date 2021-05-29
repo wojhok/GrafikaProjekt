@@ -41,8 +41,6 @@ float* normals = myCubeNormals;
 float* texCoords = myCubeTexCoords;
 float* colors = myCubeColors;
 int vertexCount = myCubeVertexCount;
-std::vector<GLuint> texRoom;
-std::vector<GLuint> texPainting;
 
 
 
@@ -155,7 +153,7 @@ GLuint readTexturePNG(const char* filename) {
 }
 
 
-GLuint readTextureJPG(const char* filename) {
+GLuint readTexture(const char* filename) {
 	unsigned int texture;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
@@ -174,6 +172,10 @@ GLuint readTextureJPG(const char* filename) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
 	stbi_image_free(data);
 
 
@@ -191,30 +193,13 @@ void error_callback(int error, const char* description) {
 }
 
 void initOpenGLProgram(GLFWwindow* window) {
-	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	//************Tutaj umieszczaj kod, który nale¿y wykonaæ raz, na pocz¹tku programu************
-	texRoom.push_back(readTextureJPG("ceil.jpg"));
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	texRoom.push_back(readTextureJPG("floor.jpg"));
-	for (int i = 0; i < 5; i++)
-	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-		texRoom.push_back(readTextureJPG("wall.jpg"));
-	}
 	glClearColor(0, 0, 0, 1);
 	glEnable(GL_DEPTH_TEST);
 	glfwSetWindowSizeCallback(window, windowResizeCallback);
 	glfwSetKeyCallback(window, key_callback);
-	
-	texPainting.push_back(readTexturePNG("Black.PNG"));
-	texPainting.push_back(readTextureJPG("painting.png"));
-	texPainting.push_back(readTexturePNG("Black.PNG"));
-	tex0 = readTextureJPG("painting.png");
-	tex1 = readTexturePNG("bricks.png");
+	tex0 = readTexture("painting.png");
+	tex1 = readTexture("bricks.png");
 	sp = new ShaderProgram("VertexShader.glsl", NULL, "FragmenShader.glsl");
 	//sp1 = new ShaderProgram("ModelVS.glsl", NULL, "ModelFS.glsl");
 }
@@ -244,12 +229,17 @@ void drawScene(GLFWwindow* window, float position_z,float position_x, Camera cam
 	glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
 
 	glm::mat4 M = glm::mat4(1.0f);
-	sp->use();//Aktywacja programu cieniuj¹cego	
+	sp->use();//Aktywacja programu cieniuj¹cego
+	std::vector<GLuint> texRoom;
+	texRoom.push_back(readTexture("ceil.jpg"));
+	texRoom.push_back(readTexture("floor.jpg"));
+	for (int i = 0; i < 4; i++)
+	{
+		texRoom.push_back(readTexture("wall.jpg"));
+	}
 	Room room = Room(M);
-	
 	for (int i = 0; i < 6; i++)
 	{
-		
 		mat4 M1 = M;
 		M1 = glm::translate(M1, room.translates[i]);
 		M1 = glm::rotate(M1, room.rotates[i].angle, room.rotates[i].axis);
@@ -292,7 +282,7 @@ void drawScene(GLFWwindow* window, float position_z,float position_x, Camera cam
 
 		glUniform1i(sp->u("textureMap0"), 0);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texPainting[i]);
+		glBindTexture(GL_TEXTURE_2D, tex0);
 		
 		
 		

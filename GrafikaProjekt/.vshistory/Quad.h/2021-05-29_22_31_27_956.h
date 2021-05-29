@@ -1,4 +1,3 @@
-#pragma once
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
@@ -25,8 +24,8 @@ public:
             -1.0f, 1.0f,0.0f,1.0f }; //B;
 
         texCoords = {
-                50.0f, 0.0f, 0.0f, 50.0f, 0.0f, 0.0f, //ABC
-                50.0f, 0.0f, 50.0f, 50.0f, 0.0f, 50.0f, //ADB
+                1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, //ABC
+                1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, //ADB
                     };
         normals = {
                0.0f,0.0f,1.0f,0.0f, //A

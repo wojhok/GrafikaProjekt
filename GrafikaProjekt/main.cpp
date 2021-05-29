@@ -14,6 +14,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include "lodepng.h"
+#include "Camera.h"
+#include "keyboard.h"
 
 ShaderProgram* sp;
 ShaderProgram* sp1;
@@ -23,8 +25,11 @@ using namespace std;
 
 float speed_x = 0;
 float speed_y = 0;
+
 float positionSpeedVertical = 0;
 float positionSpeedHorizontal = 0;
+Keyboard keyboard = Keyboard(positionSpeedVertical,positionSpeedHorizontal);
+
 
 float* vertices = myCubeVertices;
 float* normals = myCubeNormals;
@@ -32,13 +37,12 @@ float* texCoords = myCubeTexCoords;
 float* colors = myCubeColors;
 int vertexCount = myCubeVertexCount;
 
-int liczba_obiektow = 0;
 std::vector<glm::vec4> verts;
 std::vector<glm::vec4> norms;
 std::vector<glm::vec2> texCoords1;
 std::vector<unsigned int> indices;
 
-Model modelObraz = Model(string("fbxPainting.fbx"),0.11f);
+Model modelObraz = Model(string("Abstract-Painting_Monumental-Figure.fbx"),0.11f);
 
 GLuint tex0;
 GLuint tex1;
@@ -52,9 +56,8 @@ glm::vec3 positionOfCubesArr[] = {glm::vec3(0.0f,0.0f,0.0f),
 
 
 //kamera
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -5.0f); // po³o¿enie kamery
-glm::vec3 cameraLook = glm::vec3(0.0f, 0.0f, 2.0f); // gdzie patrzymy
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+Camera camera = Camera(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
 float yaw_ = 90.0f;
 float pitch_ = 0.0f;
 // stan myszy
@@ -107,27 +110,18 @@ void cursor_callback(GLFWwindow* window, double xPos, double yPos)
 		front.x = cos(glm::radians(yaw_)) * cos(glm::radians(pitch_)); //wyliczenie wpó³rzêdnej X kamery
 		front.y = sin(glm::radians(pitch_)); //wyliczenie wspó³rzêdnej Y kamery
 		front.z = sin(glm::radians(yaw_)) * cos(glm::radians(pitch_)); //wyliczenie wspó³rzêdnej Z kamery
-		cameraLook = glm::normalize(front);
+		camera.cameraLook = glm::normalize(front);
 	}
-	
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) { //Obs³uga klawiszy
 	if (action == GLFW_PRESS) {
-		if (key == GLFW_KEY_LEFT) speed_x = -3.14 / 2;
-		if (key == GLFW_KEY_RIGHT) speed_x = 3.14 / 2;
-		if (key == GLFW_KEY_UP) speed_y = 3.14 / 2;
-		if (key == GLFW_KEY_DOWN) speed_y = -3.14 / 2;
 		if (key == GLFW_KEY_W) positionSpeedVertical = 3.14 / 2;
 		if (key == GLFW_KEY_S) positionSpeedVertical = -3.14 / 2;
 		if (key == GLFW_KEY_A) positionSpeedHorizontal = 3.14 / 2;
 		if (key == GLFW_KEY_D) positionSpeedHorizontal = -3.14 / 2;
 	}
 	if (action == GLFW_RELEASE) {
-		if (key == GLFW_KEY_LEFT) speed_x = 0;
-		if (key == GLFW_KEY_RIGHT) speed_x = 0;
-		if (key == GLFW_KEY_UP) speed_y = 0;
-		if (key == GLFW_KEY_DOWN) speed_y = 0;
 		if (key == GLFW_KEY_W) positionSpeedVertical = 0;
 		if (key == GLFW_KEY_S) positionSpeedVertical = 0;
 		if (key == GLFW_KEY_A) positionSpeedHorizontal = 0;
@@ -139,16 +133,12 @@ GLuint readTexture(const char* filename) {
 	GLuint tex;
 	glActiveTexture(GL_TEXTURE0);
 
-	//Wczytanie do pamiêci komputera
-	std::vector<unsigned char> image;   //Alokuj wektor do wczytania obrazka
-	unsigned width, height;   //Zmienne do których wczytamy wymiary obrazka
-	//Wczytaj obrazek
+	std::vector<unsigned char> image;   
+	unsigned width, height;   
 	unsigned error = lodepng::decode(image, width, height, filename);
 
-	//Import do pamiêci karty graficznej
 	glGenTextures(1, &tex); //Zainicjuj jeden uchwyt
 	glBindTexture(GL_TEXTURE_2D, tex); //Uaktywnij uchwyt
-	//Wczytaj obrazek do pamiêci KG skojarzonej z uchwytem
 	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0,
 		GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
 
@@ -176,8 +166,8 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glfwSetKeyCallback(window, key_callback);
 	//loadModel(string("fbxPainting.fbx"));
 	//mesh = Mesh(std::string("fbxPainting.fbx"));
-	tex0 = readTexture("bricks.png");
-	tex1 = readTexture("painting.png");
+	tex0 = readTexture("kostki.png");
+	tex1 = readTexture("bricks.png");
 	sp = new ShaderProgram("VertexShader.glsl", NULL, "FragmenShader.glsl");
 	//sp1 = new ShaderProgram("ModelVS.glsl", NULL, "ModelFS.glsl");
 }
@@ -192,17 +182,14 @@ void freeOpenGLProgram(GLFWwindow* window) {
 
 
 
-void drawScene(GLFWwindow* window, float position_z,float position_x) {
+void drawScene(GLFWwindow* window, float position_z,float position_x, Camera camera) {
 	//************Tutaj umieszczaj kod rysuj¹cy obraz******************
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glm::vec4 lp = glm::vec4(0, 3, -100, 1); // Ustalenie wspó³rzêdnyh Ÿród³a œwiata³a
-	glUniform4fv(sp->u("lp"), 1, glm::value_ptr(lp));
-	glm::mat4 V = glm::lookAt(
-		cameraPos,
-		cameraPos+cameraLook,
-		//cameraPos + calcDir(angle_x),
-		glm::vec3(0, 1.0f, 0)); //Wylicz macierz widoku
+	glm::vec4 lp = glm::vec4(0, 3, -5, 1); // Ustalenie wspó³rzêdnyh Ÿród³a œwiata³a
+	glUniform3fv(sp->u("lightPosition"), 1, glm::value_ptr(camera.cameraPos));
+	glUniform3fv(sp->u("viewPosition"), 1, glm::value_ptr(camera.cameraPos));
+	glm::mat4 V = camera.cameraMatrix();
 
 	glm::mat4 P = glm::perspective(glm::radians(50.0f), 1.0f, 1.2f, 50.0f);
 
@@ -238,19 +225,22 @@ void drawScene(GLFWwindow* window, float position_z,float position_x) {
 	for (int i = 0; i < modelObraz.meshes.size(); i++)
 	{
 		glm::mat4 M1 = M;
+		M1 = glm::scale(M1, glm::vec3(0.001f,0.001f,0.001f));
 		//M1 = glm::translate(M, glm::vec3(0.0f,0.0f,0.0f));
 		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M1));
 		glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
 		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, modelObraz.meshes[i].vertices.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
-		glEnableVertexAttribArray(sp->a("texCoord1"));  //W³¹cz przesy³anie danych do atrybutu vertex
-		glVertexAttribPointer(sp->a("texCoord1"), 4, GL_FLOAT, false, 0, modelObraz.meshes[i].textures.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
+		glEnableVertexAttribArray(sp->a("texCoord0"));  //W³¹cz przesy³anie danych do atrybutu vertex
+		glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, modelObraz.meshes[i].textures.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
 		glEnableVertexAttribArray(sp->a("normal"));  //W³¹cz przesy³anie danych do atrybutu vertex
 		glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, modelObraz.meshes[i].norms.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
 
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, tex0);
-		glUniform1i(sp->u("textureMap0"), 0);
+		if (i == 0)
+		{
+			glUniform1i(sp->u("textureMap0"), 0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, tex0);
+		}
 
 		glDrawElements(GL_TRIANGLES, modelObraz.meshes[i].indices.size(), GL_UNSIGNED_INT, modelObraz.meshes[i].indices.data()); //Narysuj obiekt
 	}
@@ -308,10 +298,9 @@ int main()
 	glfwSetTime(0); //Zeruj timer
 	while (!glfwWindowShouldClose(window)) //Tak d³ugo jak okno nie powinno zostaæ zamkniête
 	{
-		cameraPos += float(positionSpeedHorizontal * glfwGetTime()) * glm::vec3(cameraLook.z, 0, -cameraLook.x); // przesuwanie w prawo lub lew wraz z uwzglêdnieniem kieunku wzroku
-		cameraPos += float(positionSpeedVertical*glfwGetTime())*glm::vec3(cameraLook.x,0, cameraLook.z); // przesuwanie w przód lub w ty³ wraz z uwzglêdnieniem kieunku wzroku
+		camera.cameraCalculateNewPos(positionSpeedVertical, positionSpeedHorizontal, glfwGetTime());
 		glfwSetTime(0); //Zeruj timer
-		drawScene(window, position_z, position_x); //Wykonaj procedurê rysuj¹c¹
+		drawScene(window, position_z, position_x, camera); //Wykonaj procedurê rysuj¹c¹
 		glfwPollEvents(); //Wykonaj procedury callback w zaleznoœci od zdarzeñ jakie zasz³y.
 	}
 

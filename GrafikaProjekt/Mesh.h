@@ -26,7 +26,6 @@ public:
 	std::vector<glm::vec4> norms;
 	std::vector<glm::vec2> textures;
 	std::vector<unsigned int> indices;
-	std::string plik;
 
 	// konstruktor
 	Mesh(std::vector<glm::vec4> vertices, std::vector<glm::vec4> norms, std::vector<glm::vec2> textures, std::vector<unsigned int> indices)

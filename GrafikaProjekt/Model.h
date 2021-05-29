@@ -57,11 +57,11 @@ private:
 		std::vector<unsigned int> indices;
 		for (int i = 0; i < mesh->mNumVertices; i++) {
 			aiVector3D vertex = mesh->mVertices[i]; //aiVector3D podobny do glm::vec3
-			vertex *= resize ;
+			//vertex *= resize ;
 			vertices.push_back(glm::vec4(vertex.x, vertex.y, vertex.z, 1));
 
 			aiVector3D normal = mesh->mNormals[i]; //Wektory znormalizowane
-			normal *= resize;
+			//normal *= resize;
 			norms.push_back(glm::vec4(normal.x, normal.y, normal.z, 0));
 
 			//liczba zdefiniowanych zestawów wsp. teksturowania (zestawów jest max 8)
@@ -72,8 +72,12 @@ private:
 
 
 			aiVector3D texCoord = mesh->mTextureCoords[0][i];
-			texCoord *= resize;
-			textures.push_back(glm::vec2(texCoord.x, texCoord.y));
+			//texCoord *= resize;
+			glm::vec2 vecTex;
+			vecTex.x = mesh->mTextureCoords[0][i].x;
+			vecTex.y = mesh->mTextureCoords[0][i].y;
+			textures.push_back(vecTex);
+			//std::cout << vecTex.x << " " << vecTex.y << std::endl;
 			//x,y,z wykorzystywane jako u,v,w. 0 je¿eli tekstura ma mniej wymiarów
 
 		}

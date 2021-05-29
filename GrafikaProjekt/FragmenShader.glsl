@@ -2,29 +2,36 @@
 
 //Zm jednorodne
 uniform sampler2D textureMap0;
+uniform vec3 lightPosition;
+uniform vec3 viewPosition;
 
 //Zm interpolowane
 out vec4 pixelColor; //Zmienna wyjsciowa fragment shadera. Zapisuje sie do niej ostateczny (prawie) kolor piksela
 
 //Atrybuty
-in vec4 ic;
-in vec4 l;
-in vec4 v;
-in vec4 n;
 in vec2 iTexCoord0;
+in vec3 pixelPosition;
+in vec3 normalOut;
 
 void main(void) {
-	vec4 r =  reflect(-l,n);
+	float ambientStrenght = 0.1;
+	vec3 ambient = ambientStrenght* vec3(1,1,1);
+	///
+	vec3 norm = normalize(normalOut);
+	///
+	vec3 lightDir = normalize(lightPosition- pixelPosition);
+	float dif = max(dot(norm, lightDir),0);
+	vec3 diffuse = dif*vec3(1,1,1)*texture(textureMap0,iTexCoord0).rgb;
 
-	//Parametry powierzchni
-	vec4 kd = texture(textureMap0, iTexCoord0);
-	vec4 ks = vec4(1, 1, 1, 1);
+	float specularStrenght = 0.61;
+	///
+	vec3 viewDir = normalize(viewPosition - pixelPosition);
+	///
+	vec3 reflectDir = reflect(-lightDir,norm);
+	float spec = pow(max(dot(viewDir,reflectDir),0),32);
 
-	//Obliczanie oœwietlenia
-	float nl = clamp(dot(n,l),0,1);
-    float rv = pow(clamp(dot(r,v), 0, 1),25);
+	vec3 specular = specularStrenght*spec*vec3(1,1,1);
+	vec3 result = (ambient+diffuse+specular);
 
-	vec4 icol1 =vec4(kd.rgb, kd.a ) + vec4(ks.rgb*rv,0);
-	vec4 icol = vec4(kd.rgb*nl, kd.a ) + vec4(ks.rgb*rv,0);
-	pixelColor=icol;
+	pixelColor = vec4(result,1.0);
 }

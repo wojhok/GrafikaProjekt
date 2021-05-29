@@ -167,6 +167,7 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="Quad.h" />
     <ClInclude Include="shaderProgram.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

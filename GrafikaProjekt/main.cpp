@@ -37,6 +37,8 @@ float* texCoords = myCubeTexCoords;
 float* colors = myCubeColors;
 int vertexCount = myCubeVertexCount;
 
+float* quadVerticies;
+
 std::vector<glm::vec4> verts;
 std::vector<glm::vec4> norms;
 std::vector<glm::vec2> texCoords1;

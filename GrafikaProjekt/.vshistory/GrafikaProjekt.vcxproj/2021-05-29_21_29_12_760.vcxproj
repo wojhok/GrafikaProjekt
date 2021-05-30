@@ -171,7 +171,6 @@
     <ClInclude Include="Room.h" />
     <ClInclude Include="shaderProgram.h" />
     <ClInclude Include="stb_image.h" />
-    <ClInclude Include="Walls.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

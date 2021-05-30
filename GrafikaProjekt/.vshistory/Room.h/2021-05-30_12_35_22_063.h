@@ -43,7 +43,7 @@ public:
 	{
 		//this->sp = shaderProgram;
 		this->roomHeight = roomHeight;
-		this->roomWidth = roomWidth;
+		this->roomWidth = roomHeight;
 		this->M = M;
 		for (int i = 0; i < 6; i++)
 		{

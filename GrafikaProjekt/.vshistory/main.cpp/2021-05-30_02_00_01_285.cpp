@@ -18,7 +18,6 @@
 #include "keyboard.h"
 #include "Quad.h"
 #include "Room.h"
-#include "Walls.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -37,6 +36,11 @@ float positionSpeedHorizontal = 0;
 Keyboard keyboard = Keyboard(positionSpeedVertical,positionSpeedHorizontal);
 
 //Cube
+float* vertices = myCubeVertices;
+float* normals = myCubeNormals;
+float* texCoords = myCubeTexCoords;
+float* colors = myCubeColors;
+int vertexCount = myCubeVertexCount;
 std::vector<GLuint> texRoom;
 std::vector<GLuint> texPainting;
 
@@ -48,7 +52,6 @@ Model modelObraz = Model(string("fbxPainting.fbx"),1.0f);
 
 GLuint tex0;
 GLuint tex1;
-GLuint texWalls;
 
 glm::vec3 positionOfCubesArr[] = {glm::vec3(0.0f,0.0f,0.0f),
 								  glm::vec3(-5.0f,-5.0f,0.0f),
@@ -193,8 +196,8 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	//************Tutaj umieszczaj kod, który nale¿y wykonaæ raz, na pocz¹tku programu************
 	texRoom.push_back(readTextureJPG("ceil.jpg"));
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	texRoom.push_back(readTextureJPG("floor.jpg"));
 	for (int i = 0; i < 5; i++)
 	{
@@ -202,7 +205,6 @@ void initOpenGLProgram(GLFWwindow* window) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 		texRoom.push_back(readTextureJPG("wall.jpg"));
 	}
-	texWalls = readTextureJPG("wall.jpg");
 	glClearColor(0, 0, 0, 1);
 	glEnable(GL_DEPTH_TEST);
 	glfwSetWindowSizeCallback(window, windowResizeCallback);
@@ -227,10 +229,10 @@ void freeOpenGLProgram(GLFWwindow* window) {
 
 
 
-void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room) {
+void drawScene(GLFWwindow* window, float position_z,float position_x, Camera camera) {
 	//************Tutaj umieszczaj kod rysuj¹cy obraz******************
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	std::cout << "Camera posX: " << camera.cameraPos.x << "Camera PosZ: " << camera.cameraPos.z << std::endl;
+
 	glm::vec4 lp = glm::vec4(0, 3, -5, 1); // Ustalenie wspó³rzêdnyh Ÿród³a œwiata³a
 	glUniform3fv(sp->u("lightPosition"), 1, glm::value_ptr(camera.cameraPos));
 	glUniform3fv(sp->u("viewPosition"), 1, glm::value_ptr(camera.cameraPos));
@@ -243,7 +245,7 @@ void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room) {
 
 	glm::mat4 M = glm::mat4(1.0f);
 	sp->use();//Aktywacja programu cieniuj¹cego	
-	
+	Room room = Room(M);
 	
 	for (int i = 0; i < 6; i++)
 	{
@@ -270,9 +272,7 @@ void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room) {
 		glDisableVertexAttribArray(sp->a("texCoord0"));
 		glDisableVertexAttribArray(sp->a("normal"));
 	}
-	walls.drawWalls();
-
-
+	
 	for (int i = 0; i < modelObraz.meshes.size(); i++)
 	{
 		glm::mat4 M1 = M;
@@ -351,15 +351,12 @@ int main()
 	//G³ówna pêtla
 	float position_z = 0; //Aktualna pozycja kamery
 	float position_x = 0; // Aktualna pozycja kamery
-	glm::mat4 M = glm::mat4(1.0f);
-	Room room = Room(M, 7.0f, 15.f);
-	Walls walls = Walls(M, sp, texWalls,room.roomWidth,room.roomHeight);
 	glfwSetTime(0); //Zeruj timer
 	while (!glfwWindowShouldClose(window)) //Tak d³ugo jak okno nie powinno zostaæ zamkniête
 	{
 		camera.cameraCalculateNewPos(positionSpeedVertical, positionSpeedHorizontal, glfwGetTime());
 		glfwSetTime(0); //Zeruj timer
-		drawScene(window, camera, walls,room); //Wykonaj procedurê rysuj¹c¹
+		drawScene(window, position_z, position_x, camera); //Wykonaj procedurê rysuj¹c¹
 		glfwPollEvents(); //Wykonaj procedury callback w zaleznoœci od zdarzeñ jakie zasz³y.
 	}
 	

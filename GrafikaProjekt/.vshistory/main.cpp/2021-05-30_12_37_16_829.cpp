@@ -193,8 +193,8 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	//************Tutaj umieszczaj kod, który nale¿y wykonaæ raz, na pocz¹tku programu************
 	texRoom.push_back(readTextureJPG("ceil.jpg"));
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	texRoom.push_back(readTextureJPG("floor.jpg"));
 	for (int i = 0; i < 5; i++)
 	{
@@ -230,7 +230,7 @@ void freeOpenGLProgram(GLFWwindow* window) {
 void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room) {
 	//************Tutaj umieszczaj kod rysuj¹cy obraz******************
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	std::cout << "Camera posX: " << camera.cameraPos.x << "Camera PosZ: " << camera.cameraPos.z << std::endl;
+
 	glm::vec4 lp = glm::vec4(0, 3, -5, 1); // Ustalenie wspó³rzêdnyh Ÿród³a œwiata³a
 	glUniform3fv(sp->u("lightPosition"), 1, glm::value_ptr(camera.cameraPos));
 	glUniform3fv(sp->u("viewPosition"), 1, glm::value_ptr(camera.cameraPos));
@@ -353,7 +353,7 @@ int main()
 	float position_x = 0; // Aktualna pozycja kamery
 	glm::mat4 M = glm::mat4(1.0f);
 	Room room = Room(M, 7.0f, 15.f);
-	Walls walls = Walls(M, sp, texWalls,room.roomWidth,room.roomHeight);
+	Walls walls = Walls(M, sp, texWalls,room.roomWidth,room.roomWidth);
 	glfwSetTime(0); //Zeruj timer
 	while (!glfwWindowShouldClose(window)) //Tak d³ugo jak okno nie powinno zostaæ zamkniête
 	{

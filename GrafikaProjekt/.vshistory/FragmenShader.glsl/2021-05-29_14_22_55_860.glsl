@@ -23,7 +23,7 @@ void main(void) {
 	float dif = max(dot(norm, lightDir),0);
 	vec3 diffuse = dif*vec3(1,1,1)*texture(textureMap0,iTexCoord0).rgb;
 
-	float specularStrenght = 0.01;
+	float specularStrenght = 0.61;
 	///
 	vec3 viewDir = normalize(viewPosition - pixelPosition);
 	///

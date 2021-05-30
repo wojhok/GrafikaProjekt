@@ -43,7 +43,7 @@ public:
 	{
 		//this->sp = shaderProgram;
 		this->roomHeight = roomHeight;
-		this->roomWidth = roomWidth;
+		this->roomWidth = roomHeight;
 		this->M = M;
 		for (int i = 0; i < 6; i++)
 		{
@@ -51,7 +51,7 @@ public:
 		}
 		this->translates = { vec3(0.0f,roomHeight-2.0f,0.0f),
 			vec3(0.0f,-2.0f,0.0f),
-			vec3(roomWidth,0.0f,0.0f),
+			vec3(roomWidth/2.0f,0.0f,0.0f),
 			vec3(-roomWidth,0.0f,0.0f),
 			vec3(0.0f,0.0f,roomWidth),
 			vec3(0.0f,0.0f,-roomWidth),

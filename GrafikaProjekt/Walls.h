@@ -42,12 +42,18 @@ public:
 		this->doorHeight = 5.0f;
 		this->wallWidth = (roomWidth - doorWidth);
 		for (int i = 0; i < 8; i++)
-		{
+		{	
 			this->matricies.push_back(M);
 		}
 		for (int i = 0; i < 8; i++)
-		{
-			this->cubes.push_back(Cube(4.0f));
+		{	
+			if (i < 4) {
+				this->cubes.push_back(Cube(3.0f));
+			}
+			else {
+				this->cubes.push_back(Cube(1.0f));
+			}
+			
 		}
 		std::cout << roomWidth << std::endl;
 		this->translates = { glm::vec3((wallWidth+1.0f)/2.0f,roomHeight/2.0f-2.0f,0.0f),

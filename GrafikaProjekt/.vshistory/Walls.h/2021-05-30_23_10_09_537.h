@@ -72,6 +72,7 @@ public:
 		for (int i = 0; i < 8; i++)
 		{
 			matricies[i] = glm::translate(matricies[i], this->translates[i]);
+			matricies[i] = glm::scale(matricies[i], this->scales[i]);
 		}
 
 	}
@@ -80,7 +81,6 @@ public:
 	{
 		for (int i = 0; i < 8; i++)
 		{
-			matricies[i] = glm::scale(matricies[i], this->scales[i]);
 			glUniformMatrix4fv(sp->u("M"), 1, false, value_ptr(matricies[i]));
 			glEnableVertexAttribArray(sp->a("vertex"));
 			glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, this->cubes[i].cubeVertices.data());

@@ -71,17 +71,14 @@ public:
 		{ 180.0f * 2.0 * M_PI / 360.0, vec3(0.0f,1.0f,0.0f) },
 		{ 0.0f, vec3(0.0f, 0.0f, 1.0f)},
 		};
-		for (int i = 0; i < 6; i++)
-		{
-			matricies[i] = glm::translate(matricies[i], translates[i]);
-			matricies[i] = glm::rotate(matricies[i], rotates[i].angle, rotates[i].axis);
-		}
 	}
 	void drawRoom()
 	{
 		for (int i = 0; i < 6; i++)
 		{
 
+			matricies[i] = glm::translate(matricies[i], translates[i]);
+			matricies[i] = glm::rotate(matricies[i],rotates[i].angle, rotates[i].axis);
 			if(i<2) matricies[i] = glm::scale(matricies[i], vec3(roomWidth, roomWidth, roomWidth));
 			else matricies[i] = glm::scale(matricies[i], vec3(roomWidth, roomHeight, roomWidth));
 			glUniformMatrix4fv(sp->u("M"), 1, false, value_ptr(matricies[i]));

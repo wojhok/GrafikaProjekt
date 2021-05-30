@@ -227,7 +227,7 @@ void freeOpenGLProgram(GLFWwindow* window) {
 
 
 
-void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room, std::vector<Model> paintings) {
+void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room, Model painting) {
 	//************Tutaj umieszczaj kod rysuj¹cy obraz******************
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glm::vec4 lp = glm::vec4(0, 3, -5, 1); // Ustalenie wspó³rzêdnyh Ÿród³a œwiata³a
@@ -245,11 +245,7 @@ void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room, std::ve
 	
 	room.drawRoom();
 	walls.drawWalls();
-	for (int i = 0; i < paintings.size(); i++)
-	{
-		paintings[i].drawModel();	
-	}
-		
+	painting.drawModel();		
 	
 	glDisableVertexAttribArray(sp->a("vertex"));  //Wy³¹cz przesy³anie danych do atrybutu vertex
 	glDisableVertexAttribArray(sp->a("texCoord0"));
@@ -298,22 +294,17 @@ int main()
 	//G³ówna pêtla
 	float position_z = 0; //Aktualna pozycja kamery
 	float position_x = 0; // Aktualna pozycja kamery
-	std::vector<Model> paintings;
 	glm::mat4 M = glm::mat4(1.0f);
 	Room room = Room(M, 7.0f, 15.f, sp, texRoom);
 	Walls walls = Walls(M, sp, texWalls,room.roomWidth,room.roomHeight);
 	glm::mat4 M1 = glm::translate(M, glm::vec3(5.0f,0.0f,5.0f));
-	for (int i = 0; i < 4; i++)
-	{
-		paintings.push_back(Model("fbxPainting.fbx", 0.1f, texPainting, walls.matricies[i], sp, glm::vec3(0.0f, 0.0f, -1.0f)));
-	}
-	Model painting = Model("fbxPainting.fbx", 0.1f, texPainting, walls.matricies[0], sp, glm::vec3(0.0f,0.0f,-1.0f));
+	Model painting = Model("fbxPainting.fbx", 0.01f, texPainting, walls.matricies[0], sp, glm::vec3(0.0f,0.0f,0.0f));
 	glfwSetTime(0); //Zeruj timer
 	while (!glfwWindowShouldClose(window)) //Tak d³ugo jak okno nie powinno zostaæ zamkniête
 	{
 		camera.cameraCalculateNewPos(positionSpeedVertical, positionSpeedHorizontal, glfwGetTime());
 		glfwSetTime(0); //Zeruj timer
-		drawScene(window, camera, walls,room,paintings); //Wykonaj procedurê rysuj¹c¹
+		drawScene(window, camera, walls,room,painting); //Wykonaj procedurê rysuj¹c¹
 		glfwPollEvents(); //Wykonaj procedury callback w zaleznoœci od zdarzeñ jakie zasz³y.
 	}
 	

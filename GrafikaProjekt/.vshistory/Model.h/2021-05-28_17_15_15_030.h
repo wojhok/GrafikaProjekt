@@ -18,26 +18,11 @@ class Model
 {
 public:
 	std::vector<Mesh> meshes;
-	std::vector<GLuint> tex;
-	glm::mat4 matrix;
-	glm::vec3 translate;
-	ShaderProgram* sp;
-	Model(std::string plik, float resize, std::vector<GLuint> tex, glm::mat4 matrix, ShaderProgram* sp, glm::vec3 translate)
+	Model(std::string plik, float resize)
 	{
 		this->resize = resize;
 		loadModel(plik);
-		this->tex = tex;
-		this->matrix = matrix;
-		this->sp = sp;
-		this->translate = translate;
-	}
-
-	void drawModel()
-	{
-		for (int i = 0; i < meshes.size(); i++)
-		{
-			meshes[i].drawMesh(tex[i],matrix,sp,resize, translate);
-		}
+		
 	}
 
 private:

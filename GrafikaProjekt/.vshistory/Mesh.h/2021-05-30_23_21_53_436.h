@@ -37,10 +37,10 @@ public:
 		this->indices = indices;
 	}
 
-	void drawMesh(GLuint tex, glm::mat4 matrix,ShaderProgram* sp,float resize, glm::vec3 translate)
+	void drawMesh(GLuint tex, glm::mat4 matrix,ShaderProgram* sp,float resize)
 	{
-		matrix = glm::translate(matrix, translate);
 		matrix = glm::scale(matrix, glm::vec3(resize, resize, resize));
+		matrix = glm::translate(matrix, translate);
 		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(matrix));
 		glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
 		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, vertices.data()); //Wska¿ tablicê z danymi dla atrybutu vertex

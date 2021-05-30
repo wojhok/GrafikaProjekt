@@ -20,9 +20,9 @@ public:
 	std::vector<Mesh> meshes;
 	std::vector<GLuint> tex;
 	glm::mat4 matrix;
-	glm::vec3 translate;
+	std::vector<glm::vec3> translate;
 	ShaderProgram* sp;
-	Model(std::string plik, float resize, std::vector<GLuint> tex, glm::mat4 matrix, ShaderProgram* sp, glm::vec3 translate)
+	Model(std::string plik, float resize, std::vector<GLuint> tex, glm::mat4 matrix, ShaderProgram* sp, std::vector<glm::vec3> translate)
 	{
 		this->resize = resize;
 		loadModel(plik);

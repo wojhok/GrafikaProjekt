@@ -247,7 +247,7 @@ void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room, std::ve
 	walls.drawWalls();
 	for (int i = 0; i < paintings.size(); i++)
 	{
-		paintings[i].drawModel();	
+		paintings[i].drawModel();
 	}
 		
 	
@@ -305,7 +305,7 @@ int main()
 	glm::mat4 M1 = glm::translate(M, glm::vec3(5.0f,0.0f,5.0f));
 	for (int i = 0; i < 4; i++)
 	{
-		paintings.push_back(Model("fbxPainting.fbx", 0.1f, texPainting, walls.matricies[i], sp, glm::vec3(0.0f, 0.0f, -1.0f)));
+		paintings.push_back(Model("fbxPainting.fbx", 0.1f, texPainting, room.matricies[i], sp, glm::vec3(0.0f, 0.0f, -1.0f)));
 	}
 	Model painting = Model("fbxPainting.fbx", 0.1f, texPainting, walls.matricies[0], sp, glm::vec3(0.0f,0.0f,-1.0f));
 	glfwSetTime(0); //Zeruj timer

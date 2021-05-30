@@ -284,7 +284,7 @@ void drawScene(GLFWwindow* window, float position_z,float position_x, Camera cam
 		
 		if (i == 1) {
 			glEnableVertexAttribArray(sp->a("texCoord0"));  //W³¹cz przesy³anie danych do atrybutu vertex
-			glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, modelObraz.meshes[i].textures.data());
+			glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, modelObraz.meshes[i].textures.data()); //testesttest
 		}
 		//Wska¿ tablicê z danymi dla atrybutu vertex
 		glEnableVertexAttribArray(sp->a("normal"));  //W³¹cz przesy³anie danych do atrybutu vertex

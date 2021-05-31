@@ -14,10 +14,9 @@
 #include <assimp/postprocess.h>
 #include "lodepng.h"
 #include "Mesh.h"
-#define _USE_MATH_DEFINES
 #include <cmath>
 #include <math.h>
-
+#define _USE_MATH_DEFINES
 
 class Model
 {
@@ -37,8 +36,7 @@ public:
 		this->matrix = matrix;
 		this->sp = sp;
 		this->translate = translate;
-		this->angle = angle * M_PI / 180.0f;
-		this->rotateVec = rotateVec;
+		this->angle = angle * M_PI / 180;
 	}
 
 	void drawModel()

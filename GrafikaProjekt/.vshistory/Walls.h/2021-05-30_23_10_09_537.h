@@ -42,18 +42,12 @@ public:
 		this->doorHeight = 5.0f;
 		this->wallWidth = (roomWidth - doorWidth);
 		for (int i = 0; i < 8; i++)
-		{	
+		{
 			this->matricies.push_back(M);
 		}
 		for (int i = 0; i < 8; i++)
-		{	
-			if (i < 4) {
-				this->cubes.push_back(Cube(3.0f));
-			}
-			else {
-				this->cubes.push_back(Cube(1.0f));
-			}
-			
+		{
+			this->cubes.push_back(Cube(4.0f));
 		}
 		std::cout << roomWidth << std::endl;
 		this->translates = { glm::vec3((wallWidth+1.0f)/2.0f,roomHeight/2.0f-2.0f,0.0f),
@@ -78,6 +72,7 @@ public:
 		for (int i = 0; i < 8; i++)
 		{
 			matricies[i] = glm::translate(matricies[i], this->translates[i]);
+			matricies[i] = glm::scale(matricies[i], this->scales[i]);
 		}
 
 	}
@@ -86,7 +81,6 @@ public:
 	{
 		for (int i = 0; i < 8; i++)
 		{
-			matricies[i] = glm::scale(matricies[i], this->scales[i]);
 			glUniformMatrix4fv(sp->u("M"), 1, false, value_ptr(matricies[i]));
 			glEnableVertexAttribArray(sp->a("vertex"));
 			glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, this->cubes[i].cubeVertices.data());

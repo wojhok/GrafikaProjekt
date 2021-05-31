@@ -14,22 +14,15 @@
 #include <assimp/postprocess.h>
 #include "lodepng.h"
 #include "Mesh.h"
-#define _USE_MATH_DEFINES
-#include <cmath>
-#include <math.h>
-
-
 class Model
 {
 public:
 	std::vector<Mesh> meshes;
 	std::vector<GLuint> tex;
 	glm::mat4 matrix;
-	glm::vec3 translate;
+	std::vector<glm::vec3> translate;
 	ShaderProgram* sp;
-	float angle;
-	glm::vec3 rotateVec;
-	Model(std::string plik, float resize, std::vector<GLuint> tex, glm::mat4 matrix, ShaderProgram* sp, glm::vec3 translate,float angle,glm::vec3 rotateVec)
+	Model(std::string plik, float resize, std::vector<GLuint> tex, glm::mat4 matrix, ShaderProgram* sp, std::vector<glm::vec3> translate)
 	{
 		this->resize = resize;
 		loadModel(plik);
@@ -37,15 +30,13 @@ public:
 		this->matrix = matrix;
 		this->sp = sp;
 		this->translate = translate;
-		this->angle = angle * M_PI / 180.0f;
-		this->rotateVec = rotateVec;
 	}
 
 	void drawModel()
 	{
 		for (int i = 0; i < meshes.size(); i++)
 		{
-			meshes[i].drawMesh(tex[i],matrix,sp,resize, translate,angle , rotateVec);
+			meshes[i].drawMesh(tex[i],matrix,sp,resize, translate);
 		}
 	}
 

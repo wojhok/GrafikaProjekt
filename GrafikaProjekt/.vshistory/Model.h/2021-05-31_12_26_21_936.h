@@ -37,8 +37,7 @@ public:
 		this->matrix = matrix;
 		this->sp = sp;
 		this->translate = translate;
-		this->angle = angle * M_PI / 180.0f;
-		this->rotateVec = rotateVec;
+		this->angle = angle * M_PI / 180;
 	}
 
 	void drawModel()

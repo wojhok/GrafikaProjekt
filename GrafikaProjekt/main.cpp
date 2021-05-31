@@ -132,12 +132,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 }
 
-GLuint readTexturePNG(const char* filename) {
+
+GLuint readTexturePNG(const char* filename, int choice) {
 	GLuint tex;
 	glActiveTexture(GL_TEXTURE0);
 
-	std::vector<unsigned char> image;   
-	unsigned width, height;   
+	std::vector<unsigned char> image;
+	unsigned width, height;
 	unsigned error = lodepng::decode(image, width, height, filename);
 
 	glGenTextures(1, &tex); //Zainicjuj jeden uchwyt
@@ -145,20 +146,40 @@ GLuint readTexturePNG(const char* filename) {
 	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0,
 		GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	if (choice == 1) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	}
+	else if (choice == 2) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	}
+	else if (choice == 3) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	// set texture wrapping to GL_REPEAT (default wrapping method)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	}
 
 	return tex;
 }
 
 
-GLuint readTextureJPG(const char* filename) {
+GLuint readTextureJPG(const char* filename, int choice) {
 	unsigned int texture;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
 	// set the texture wrapping parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	if (choice == 1) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	}
+	else if (choice == 2) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	}
+	else if (choice == 3) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	// set texture wrapping to GL_REPEAT (default wrapping method)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	}
 	// set texture filtering parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -189,30 +210,24 @@ void error_callback(int error, const char* description) {
 
 void initOpenGLProgram(GLFWwindow* window) {
 	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	//************Tutaj umieszczaj kod, który nale¿y wykonaæ raz, na pocz¹tku programu************
-	texRoom.push_back(readTextureJPG("ceil.jpg"));
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	texRoom.push_back(readTextureJPG("floor.jpg"));
+	texRoom.push_back(readTextureJPG("sufit.jpg",2));
+	texRoom.push_back(readTextureJPG("floor.jpg",2));
 	for (int i = 0; i < 5; i++)
 	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-		texRoom.push_back(readTextureJPG("wall.jpg"));
+		texRoom.push_back(readTextureJPG("wall.jpg",2));
 	}
-	texWalls = readTextureJPG("wall.jpg");
+	texWalls = readTextureJPG("wall.jpg",2);
 	glClearColor(0, 0, 0, 1);
 	glEnable(GL_DEPTH_TEST);
 	glfwSetWindowSizeCallback(window, windowResizeCallback);
 	glfwSetKeyCallback(window, key_callback);
 	
-	texPainting.push_back(readTexturePNG("Black.PNG"));
-	texPainting.push_back(readTextureJPG("painting.png"));
-	texPainting.push_back(readTexturePNG("Black.PNG"));
-	tex0 = readTextureJPG("painting.png");
-	tex1 = readTexturePNG("bricks.png");
+	texPainting.push_back(readTexturePNG("Black.PNG",2));
+	texPainting.push_back(readTextureJPG("painting.png",2));
+	texPainting.push_back(readTexturePNG("Black.PNG",2));
+	tex0 = readTextureJPG("painting.png",2);
+	tex1 = readTexturePNG("bricks.png",2);
 	sp = new ShaderProgram("VertexShader.glsl", NULL, "FragmenShader.glsl");
 	//sp1 = new ShaderProgram("ModelVS.glsl", NULL, "ModelFS.glsl");
 }

@@ -44,7 +44,7 @@ std::vector<GLuint> texPainting;
 
 
 
-Model modelObraz = Model(string("fbxPainting.fbx"),1.0f);
+//Model modelObraz = Model(string("fbxPainting.fbx"),1.0f);
 
 GLuint tex0;
 GLuint tex1;
@@ -132,7 +132,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 }
 
-GLuint readTexturePNG(const char* filename, int choice) {
+GLuint readTexturePNG(const char* filename) {
 	GLuint tex;
 	glActiveTexture(GL_TEXTURE0);
 
@@ -145,40 +145,20 @@ GLuint readTexturePNG(const char* filename, int choice) {
 	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0,
 		GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
 
-	if (choice == 1) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	}
-	else if (choice == 2) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	}
-	else if (choice == 3) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	// set texture wrapping to GL_REPEAT (default wrapping method)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	return tex;
 }
 
 
-GLuint readTextureJPG(const char* filename, int choice) {
+GLuint readTextureJPG(const char* filename) {
 	unsigned int texture;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
 	// set the texture wrapping parameters
-	if (choice == 1) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	}
-	else if (choice == 2) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	}
-	else if (choice == 3) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	// set texture wrapping to GL_REPEAT (default wrapping method)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	// set texture filtering parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -209,23 +189,30 @@ void error_callback(int error, const char* description) {
 
 void initOpenGLProgram(GLFWwindow* window) {
 	
-	texRoom.push_back(readTextureJPG("sufit.jpg", 1));
-	texRoom.push_back(readTextureJPG("floor.jpg", 2));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	//************Tutaj umieszczaj kod, który nale¿y wykonaæ raz, na pocz¹tku programu************
+	texRoom.push_back(readTextureJPG("ceil.jpg"));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	texRoom.push_back(readTextureJPG("floor.jpg"));
 	for (int i = 0; i < 5; i++)
 	{
-		texRoom.push_back(readTextureJPG("wall.jpg", 2));
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+		texRoom.push_back(readTextureJPG("wall.jpg"));
 	}
-	texWalls = readTextureJPG("wall.jpg", 1);
+	texWalls = readTextureJPG("wall.jpg");
 	glClearColor(0, 0, 0, 1);
 	glEnable(GL_DEPTH_TEST);
 	glfwSetWindowSizeCallback(window, windowResizeCallback);
 	glfwSetKeyCallback(window, key_callback);
 	
-	texPainting.push_back(readTexturePNG("Black.PNG", 1));
-	texPainting.push_back(readTextureJPG("painting.png", 1));
-	texPainting.push_back(readTexturePNG("Black.PNG", 1));
-	tex0 = readTextureJPG("painting.png", 1);
-	tex1 = readTexturePNG("bricks.png", 1);
+	texPainting.push_back(readTexturePNG("Black.PNG"));
+	texPainting.push_back(readTextureJPG("painting.png"));
+	texPainting.push_back(readTexturePNG("Black.PNG"));
+	tex0 = readTextureJPG("painting.png");
+	tex1 = readTexturePNG("bricks.png");
 	sp = new ShaderProgram("VertexShader.glsl", NULL, "FragmenShader.glsl");
 	//sp1 = new ShaderProgram("ModelVS.glsl", NULL, "ModelFS.glsl");
 }
@@ -240,10 +227,9 @@ void freeOpenGLProgram(GLFWwindow* window) {
 
 
 
-void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room) {
+void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room, std::vector<Model> paintings) {
 	//************Tutaj umieszczaj kod rysuj¹cy obraz******************
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	std::cout << "Camera posX: " << camera.cameraPos.x << "Camera PosZ: " << camera.cameraPos.z << std::endl;
 	glm::vec4 lp = glm::vec4(0, 3, -5, 1); // Ustalenie wspó³rzêdnyh Ÿród³a œwiata³a
 	glUniform3fv(sp->u("lightPosition"), 1, glm::value_ptr(camera.cameraPos));
 	glUniform3fv(sp->u("viewPosition"), 1, glm::value_ptr(camera.cameraPos));
@@ -257,63 +243,11 @@ void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room) {
 	glm::mat4 M = glm::mat4(1.0f);
 	sp->use();//Aktywacja programu cieniuj¹cego	
 	
-	
-	for (int i = 0; i < 6; i++)
-	{
-		
-		mat4 M1 = M;
-		M1 = glm::translate(M1, room.translates[i]);
-		M1 = glm::rotate(M1, room.rotates[i].angle, room.rotates[i].axis);
-		M1 = glm::scale(M1, vec3(50.0f, 50.0f, 50.0f));
-		glUniformMatrix4fv(sp->u("M"), 1, false, value_ptr(M1));
-		glEnableVertexAttribArray(sp->a("vertex"));
-		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, room.quads[i].verts.data());
-		glEnableVertexAttribArray(sp->a("texCoord0"));
-		glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, room.quads[i].texCoords.data());
-		glEnableVertexAttribArray(sp->a("normal"));
-		glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, room.quads[i].normals.data());
-
-		glUniform1i(sp->u("textureMap0"), 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texRoom[i]);
-
-		glDrawArrays(GL_TRIANGLES, 0, room.quads[i].vertexCount); //Narysuj obiekt
-
-		glDisableVertexAttribArray(sp->a("vertex"));  //Wy³¹cz przesy³anie danych do atrybutu vertex
-		glDisableVertexAttribArray(sp->a("texCoord0"));
-		glDisableVertexAttribArray(sp->a("normal"));
-	}
+	room.drawRoom();
 	walls.drawWalls();
-
-
-	for (int i = 0; i < modelObraz.meshes.size(); i++)
+	for (int i = 0; i < paintings.size(); i++)
 	{
-		glm::mat4 M1 = M;
-		M1 = glm::scale(M1, glm::vec3(0.1f,0.1f,0.1f));
-		//M1 = glm::translate(M, glm::vec3(0.0f,0.0f,0.0f));
-		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M1));
-		glEnableVertexAttribArray(sp->a("vertex"));  //W³¹cz przesy³anie danych do atrybutu vertex
-		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, modelObraz.meshes[i].vertices.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
-		
-		if (i == 1) {
-			glEnableVertexAttribArray(sp->a("texCoord0"));  //W³¹cz przesy³anie danych do atrybutu vertex
-			glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, modelObraz.meshes[i].textures.data()); //testesttest
-		}
-		//Wska¿ tablicê z danymi dla atrybutu vertex
-		glEnableVertexAttribArray(sp->a("normal"));  //W³¹cz przesy³anie danych do atrybutu vertex
-		glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, modelObraz.meshes[i].norms.data()); //Wska¿ tablicê z danymi dla atrybutu vertex
-
-		glUniform1i(sp->u("textureMap0"), 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texPainting[i]);
-		
-		
-		
-
-		glDrawElements(GL_TRIANGLES, modelObraz.meshes[i].indices.size(), GL_UNSIGNED_INT, modelObraz.meshes[i].indices.data()); //Narysuj obiekt
-		glDisableVertexAttribArray(sp->a("vertex"));  //Wy³¹cz przesy³anie danych do atrybutu vertex
-		glDisableVertexAttribArray(sp->a("texCoord0"));
-		glDisableVertexAttribArray(sp->a("normal"));
+		paintings[i].drawModel();	
 	}
 
 	
@@ -367,14 +301,32 @@ int main()
 	float position_z = 0; //Aktualna pozycja kamery
 	float position_x = 0; // Aktualna pozycja kamery
 	glm::mat4 M = glm::mat4(1.0f);
-	Room room = Room(M, 7.0f, 15.f);
+	Room room = Room(M, 7.0f, 15.f, sp, texRoom);
 	Walls walls = Walls(M, sp, texWalls,room.roomWidth,room.roomHeight);
+	std::vector<Model> paintings = { Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[2],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[2],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[3],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[3],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[4],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[4],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[5],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[5],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[0],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[0],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[1],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	
+	};
+	/*for (int i = 0; i < 4; i++)
+	{
+		paintings.push_back(Model("fbxPainting.fbx", 0.1f, texPainting, walls.matricies[i], sp, glm::vec3(0.0f, 0.0f, -1.0f)));
+	}*/
+	//Model painting = Model("fbxPainting.fbx", 0.1f, texPainting, walls.matricies[0], sp, glm::vec3(0.0f,0.0f,-1.0f));
 	glfwSetTime(0); //Zeruj timer
 	while (!glfwWindowShouldClose(window)) //Tak d³ugo jak okno nie powinno zostaæ zamkniête
 	{
 		camera.cameraCalculateNewPos(positionSpeedVertical, positionSpeedHorizontal, glfwGetTime());
 		glfwSetTime(0); //Zeruj timer
-		drawScene(window, camera, walls,room); //Wykonaj procedurê rysuj¹c¹
+		drawScene(window, camera, walls,room,paintings); //Wykonaj procedurê rysuj¹c¹
 		glfwPollEvents(); //Wykonaj procedury callback w zaleznoœci od zdarzeñ jakie zasz³y.
 	}
 	

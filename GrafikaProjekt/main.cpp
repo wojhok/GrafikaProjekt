@@ -39,6 +39,7 @@ Keyboard keyboard = Keyboard(positionSpeedVertical,positionSpeedHorizontal);
 //Cube
 std::vector<GLuint> texRoom;
 std::vector<GLuint> texPainting;
+std::vector<GLuint> texStatue;
 
 
 
@@ -226,6 +227,10 @@ void initOpenGLProgram(GLFWwindow* window) {
 	texPainting.push_back(readTexturePNG("Black.PNG",2));
 	texPainting.push_back(readTextureJPG("painting.png",2));
 	texPainting.push_back(readTexturePNG("Black.PNG",2));
+	texStatue.push_back(readTexturePNG("statue1.png", 2));
+	texStatue.push_back(readTexturePNG("statue2.png", 2));
+	texStatue.push_back(readTexturePNG("statue1.png", 2));
+	texStatue.push_back(readTexturePNG("statue2.png", 2));
 	tex0 = readTextureJPG("painting.png",2);
 	tex1 = readTexturePNG("bricks.png",2);
 	sp = new ShaderProgram("VertexShader.glsl", NULL, "FragmenShader.glsl");
@@ -242,7 +247,7 @@ void freeOpenGLProgram(GLFWwindow* window) {
 
 
 
-void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room, std::vector<Model> paintings) {
+void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room, std::vector<Model> paintings, std::vector<Model> statues) {
 	//************Tutaj umieszczaj kod rysuj¹cy obraz******************
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glm::vec4 lp = glm::vec4(0, 3, -5, 1); // Ustalenie wspó³rzêdnyh Ÿród³a œwiata³a
@@ -263,6 +268,10 @@ void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room, std::ve
 	for (int i = 0; i < paintings.size(); i++)
 	{
 		paintings[i].drawModel();	
+	}
+	for (int i = 0; i < statues.size(); i++)
+	{
+		statues[i].drawModel();
 	}
 
 	
@@ -331,6 +340,12 @@ int main()
 	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[1],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
 	
 	};
+	vector<Model> statues = {
+	Model("Statue1.fbx",7.0f,texStatue,M,sp,vec3(2.0f,-2.0f,-2.0f),180.0f, glm::vec3(0.0f,1.0f,1.0f)),
+	Model("Statue2.obj",0.01f,texStatue,M,sp,vec3(2.0f,-2.0f,2.0f),180.0f, glm::vec3(0.0f,1.0f,1.0f)), //zle postawiona
+	Model("Statue1.fbx",7.0f,texStatue,M,sp,vec3(-2.0f,-2.0f,-2.0f),180.0f, glm::vec3(0.0f,1.0f,1.0f)),
+	Model("Statue2.obj",0.01f,texStatue,M,sp,vec3(-2.0f,-2.0f,2.0f),180.0f, glm::vec3(0.0f,1.0f,1.0f)), //zle postawiona
+	};
 	/*for (int i = 0; i < 4; i++)
 	{
 		paintings.push_back(Model("fbxPainting.fbx", 0.1f, texPainting, walls.matricies[i], sp, glm::vec3(0.0f, 0.0f, -1.0f)));
@@ -341,7 +356,7 @@ int main()
 	{
 		camera.cameraCalculateNewPos(positionSpeedVertical, positionSpeedHorizontal, glfwGetTime());
 		glfwSetTime(0); //Zeruj timer
-		drawScene(window, camera, walls,room,paintings); //Wykonaj procedurê rysuj¹c¹
+		drawScene(window, camera, walls,room,paintings, statues); //Wykonaj procedurê rysuj¹c¹
 		glfwPollEvents(); //Wykonaj procedury callback w zaleznoœci od zdarzeñ jakie zasz³y.
 	}
 	

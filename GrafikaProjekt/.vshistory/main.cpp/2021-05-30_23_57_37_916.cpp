@@ -298,27 +298,16 @@ int main()
 	//G³ówna pêtla
 	float position_z = 0; //Aktualna pozycja kamery
 	float position_x = 0; // Aktualna pozycja kamery
+	std::vector<Model> paintings;
 	glm::mat4 M = glm::mat4(1.0f);
 	Room room = Room(M, 7.0f, 15.f, sp, texRoom);
 	Walls walls = Walls(M, sp, texWalls,room.roomWidth,room.roomHeight);
-	std::vector<Model> paintings = { Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[2],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[2],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[3],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[3],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[4],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[4],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[5],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[5],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[0],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[0],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[1],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	
-	};
-	/*for (int i = 0; i < 4; i++)
+	glm::mat4 M1 = glm::translate(M, glm::vec3(5.0f,0.0f,5.0f));
+	for (int i = 0; i < 4; i++)
 	{
 		paintings.push_back(Model("fbxPainting.fbx", 0.1f, texPainting, walls.matricies[i], sp, glm::vec3(0.0f, 0.0f, -1.0f)));
-	}*/
-	//Model painting = Model("fbxPainting.fbx", 0.1f, texPainting, walls.matricies[0], sp, glm::vec3(0.0f,0.0f,-1.0f));
+	}
+	Model painting = Model("fbxPainting.fbx", 0.1f, texPainting, walls.matricies[0], sp, glm::vec3(0.0f,0.0f,-1.0f));
 	glfwSetTime(0); //Zeruj timer
 	while (!glfwWindowShouldClose(window)) //Tak d³ugo jak okno nie powinno zostaæ zamkniête
 	{

@@ -309,9 +309,6 @@ int main()
 	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[4],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
 	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[5],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
 	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[5],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[0],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[0],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[1],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
 	
 	};
 	/*for (int i = 0; i < 4; i++)

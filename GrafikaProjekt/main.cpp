@@ -315,6 +315,8 @@ void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room) {
 		glDisableVertexAttribArray(sp->a("texCoord0"));
 		glDisableVertexAttribArray(sp->a("normal"));
 	}
+
+	
 		
 	
 	glDisableVertexAttribArray(sp->a("vertex"));  //Wy³¹cz przesy³anie danych do atrybutu vertex

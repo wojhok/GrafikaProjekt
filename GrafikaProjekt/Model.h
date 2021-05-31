@@ -22,6 +22,7 @@
 class Model
 {
 public:
+	std::string plik;
 	std::vector<Mesh> meshes;
 	std::vector<GLuint> tex;
 	glm::mat4 matrix;
@@ -32,6 +33,7 @@ public:
 	Model(std::string plik, float resize, std::vector<GLuint> tex, glm::mat4 matrix, ShaderProgram* sp, glm::vec3 translate,float angle,glm::vec3 rotateVec)
 	{
 		this->resize = resize;
+		this->plik = plik;
 		loadModel(plik);
 		this->tex = tex;
 		this->matrix = matrix;
@@ -44,7 +46,12 @@ public:
 	void drawModel()
 	{
 		for (int i = 0; i < meshes.size(); i++)
-		{
+		{	
+			/*if (plik == "Statue1.fbx")
+			{
+				std::cout << meshes.size() << std::endl;
+
+			}*/
 			meshes[i].drawMesh(tex[i],matrix,sp,resize, translate,angle , rotateVec);
 		}
 	}
@@ -57,12 +64,16 @@ private:
 		const aiScene* scene = importer.ReadFile(plik,
 			aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
 		cout << importer.GetErrorString() << endl;
-		this->processNode(scene->mRootNode, scene);
+		if (scene)
+		{
+			this->processNode(scene->mRootNode, scene);
+		}
 	}
 	void processNode(aiNode* node, const aiScene* scene)
 	{
 		for (GLuint i = 0; i < node->mNumMeshes; i++)
 		{
+			//std::cout << node->mNumMeshes << std::endl;
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			this->meshes.push_back(this->processMesh(mesh, scene));
 		}
@@ -84,23 +95,35 @@ private:
 			//vertex *= resize ;
 			vertices.push_back(glm::vec4(vertex.x, vertex.y, vertex.z, 1));
 
-			aiVector3D normal = mesh->mNormals[i]; //Wektory znormalizowane
-			//normal *= resize;
-			norms.push_back(glm::vec4(normal.x, normal.y, normal.z, 0));
+			if (mesh->HasNormals())
+			{
+				aiVector3D normal = mesh->mNormals[i]; //Wektory znormalizowane
+				//normal *= resize;
+				norms.push_back(glm::vec4(normal.x, normal.y, normal.z, 0));
+				if (plik == "human.fbx")
+				{
+					//std::cout << normal.x << " " << normal.y << " " << normal.z << std::endl;
 
+				}
+			}
 			//liczba zdefiniowanych zestawów wsp. teksturowania (zestawów jest max 8)
 			//unsigned int liczba_zest = mesh->GetNumUVChannels();
 			//Liczba sk³adowych wsp. teksturowania dla 0 zestawu.
 			//unsigned int wymiar_wsp_tex = mesh->mNumUVComponents[0];
 			//0 to numer zestawu wspó³rzêdnych teksturowania
 
-
-			aiVector3D texCoord = mesh->mTextureCoords[0][i];
-			//texCoord *= resize;
-			glm::vec2 vecTex;
-			vecTex.x = mesh->mTextureCoords[0][i].x;
-			vecTex.y = mesh->mTextureCoords[0][i].y;
-			textures.push_back(vecTex);
+			if (mesh->mTextureCoords[0])
+			{
+				aiVector3D texCoord = mesh->mTextureCoords[0][i];
+				glm::vec2 vecTex;
+				vecTex.x = mesh->mTextureCoords[0][i].x;
+				vecTex.y = mesh->mTextureCoords[0][i].y;
+				textures.push_back(vecTex);
+				if (plik == "human.fbx")
+				{
+					//std::cout << vecTex.x << " " << vecTex.y << std::endl;
+				}
+			}
 			//std::cout << vecTex.x << " " << vecTex.y << std::endl;
 			//x,y,z wykorzystywane jako u,v,w. 0 je¿eli tekstura ma mniej wymiarów
 

@@ -32,12 +32,6 @@
     <None Include="FragmenShader.glsl">
       <Filter>Pliki zasobów</Filter>
     </None>
-    <None Include="ModelVS.glsl">
-      <Filter>Pliki zasobów</Filter>
-    </None>
-    <None Include="ModelFS.glsl">
-      <Filter>Pliki zasobów</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shaderProgram.h">
@@ -56,9 +50,6 @@
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="keyboard.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
     <ClInclude Include="stb_image.h">

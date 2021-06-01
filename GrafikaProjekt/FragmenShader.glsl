@@ -29,7 +29,7 @@ vec3 calLight(vec3 lightPosition,vec3 norm, sampler2D textureMap, vec3 viewDir, 
 
 	vec3 specular = specularStrenght*spec*lightColor;
 	float dist =  length(lightPosition - pixelPosition);
-	float attenuation = 1/(1.0 + 0.07*dist + 0.017*dist*dist);
+	float attenuation = 1/(1.0 + 0.01*dist + 0.007*dist*dist);
 	ambient *= attenuation;
 	diffuse *=attenuation;
 	specular *=attenuation;

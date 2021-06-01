@@ -156,13 +156,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="FragmenShader.glsl" />
-    <None Include="ModelFS.glsl" />
-    <None Include="ModelVS.glsl" />
     <None Include="VertexShader.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="keyboard.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Cube.h" />

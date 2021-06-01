@@ -15,7 +15,6 @@
 #include <assimp/postprocess.h>
 #include "lodepng.h"
 #include "Camera.h"
-#include "keyboard.h"
 #include "Quad.h"
 #include "Room.h"
 #include "Walls.h"
@@ -34,7 +33,6 @@ float speed_y = 0;
 
 float positionSpeedVertical = 0;
 float positionSpeedHorizontal = 0;
-Keyboard keyboard = Keyboard(positionSpeedVertical,positionSpeedHorizontal);
 
 //Cube
 std::vector<GLuint> texRoom;
@@ -212,7 +210,7 @@ void error_callback(int error, const char* description) {
 void initOpenGLProgram(GLFWwindow* window) {
 	
 	//************Tutaj umieszczaj kod, który nale¿y wykonaæ raz, na pocz¹tku programu************
-	glEnable(GL_FRAMEBUFFER_SRGB);
+	//glEnable(GL_FRAMEBUFFER_SRGB);
 	texRoom.push_back(readTextureJPG("sufit.jpg",2));
 	texRoom.push_back(readTextureJPG("floor.jpg",2));
 	for (int i = 0; i < 5; i++)
@@ -247,17 +245,17 @@ void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room, std::ve
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glm::vec4 lp = glm::vec4(0, 3, -5, 1); // Ustalenie wspó³rzêdnyh Ÿród³a œwiata³a
 	std::vector<glm::vec3> lightPositions = {
-		glm::vec3(6, 4, -6),
-		glm::vec3(-6, 4, -6),
-		glm::vec3(6, 4, 6),
-		glm::vec3(-6, 4, 6),
+		glm::vec3(7.5, 4, -7.5),
+		glm::vec3(-7.5, 4,- 7.5),
+		glm::vec3(7.5, 4, 7.5),
+		glm::vec3(-7.5, 4, 7.5),
 		camera.cameraPos
 	};
 	std::vector<glm::vec3> lightColors = {
 		glm::vec3(1,0,0),
 		glm::vec3(0,1,0),
 		glm::vec3(0,0,1),
-		glm::vec3(1,0,1),
+		glm::vec3(1,1,0),
 		glm::vec3(1,1,1)
 	};
 	for (int i = 0; i < 5; i++) {

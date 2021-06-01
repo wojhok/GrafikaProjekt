@@ -212,6 +212,7 @@ void error_callback(int error, const char* description) {
 void initOpenGLProgram(GLFWwindow* window) {
 	
 	//************Tutaj umieszczaj kod, który nale¿y wykonaæ raz, na pocz¹tku programu************
+	glEnable(GL_FRAMEBUFFER_SRGB);
 	texRoom.push_back(readTextureJPG("sufit.jpg",2));
 	texRoom.push_back(readTextureJPG("floor.jpg",2));
 	for (int i = 0; i < 5; i++)
@@ -245,7 +246,29 @@ void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room, std::ve
 	//************Tutaj umieszczaj kod rysuj¹cy obraz******************
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glm::vec4 lp = glm::vec4(0, 3, -5, 1); // Ustalenie wspó³rzêdnyh Ÿród³a œwiata³a
-	glUniform3fv(sp->u("lightPosition"), 1, glm::value_ptr(camera.cameraPos));
+	std::vector<glm::vec3> lightPositions = {
+		glm::vec3(6, 4, -6),
+		glm::vec3(-6, 4, -6),
+		glm::vec3(6, 4, 6),
+		glm::vec3(-6, 4, 6),
+		camera.cameraPos
+	};
+	std::vector<glm::vec3> lightColors = {
+		glm::vec3(1,0,0),
+		glm::vec3(0,1,0),
+		glm::vec3(0,0,1),
+		glm::vec3(1,0,1),
+		glm::vec3(1,1,1)
+	};
+	for (int i = 0; i < 5; i++) {
+		string number = to_string(i);
+		//glUniform3f(sp->u(("lightPositions["+ number+"]").c_str()), lightPositions[i].x, lightPositions[i].y, lightPositions[i].z);
+		glUniform3fv(sp->u(("lightColors[" + number + "]").c_str()), 1, &lightColors[i][0]);
+		
+	}
+	glUniform3fv(sp->u("lightPositions"), lightPositions.size(), &lightPositions[0][0] );
+	//glUniform3fv(sp->u("lightPositions"), 1, glm::value_ptr(camera.cameraPos));
+	//glUniform3fv(sp->u("lightPosition"), 1, glm::value_ptr(camera.cameraPos));
 	glUniform3fv(sp->u("viewPosition"), 1, glm::value_ptr(camera.cameraPos));
 	glm::mat4 V = camera.cameraMatrix();
 

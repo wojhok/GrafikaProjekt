@@ -47,11 +47,11 @@ public:
 	{
 		for (int i = 0; i < meshes.size(); i++)
 		{	
-			/*if (plik == "Statue1.fbx")
+			if (plik == "lamp.obj")
 			{
 				std::cout << meshes.size() << std::endl;
 
-			}*/
+			}
 			meshes[i].drawMesh(tex[i],matrix,sp,resize, translate,angle , rotateVec);
 		}
 	}

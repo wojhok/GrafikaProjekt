@@ -15,7 +15,6 @@
 #include <assimp/postprocess.h>
 #include "lodepng.h"
 #include "Camera.h"
-#include "keyboard.h"
 #include "Quad.h"
 #include "Room.h"
 #include "Walls.h"
@@ -34,12 +33,10 @@ float speed_y = 0;
 
 float positionSpeedVertical = 0;
 float positionSpeedHorizontal = 0;
-Keyboard keyboard = Keyboard(positionSpeedVertical,positionSpeedHorizontal);
 
 //Cube
 std::vector<GLuint> texRoom;
 std::vector<GLuint> texPainting;
-std::vector<GLuint> texStatue;
 
 
 
@@ -60,7 +57,7 @@ glm::vec3 positionOfCubesArr[] = {glm::vec3(0.0f,0.0f,0.0f),
 
 
 //kamera
-Camera camera = Camera(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+Camera camera = Camera(glm::vec3(5.0f, 0.0f, -10.0f), glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 float yaw_ = 90.0f;
 float pitch_ = 0.0f;
@@ -159,7 +156,8 @@ GLuint readTexturePNG(const char* filename, int choice) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	// set texture wrapping to GL_REPEAT (default wrapping method)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
-
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	return tex;
 }
 
@@ -182,7 +180,7 @@ GLuint readTextureJPG(const char* filename, int choice) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 	// set texture filtering parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// load image, create texture and generate mipmaps
 	int width, height, nrChannels;
@@ -212,6 +210,7 @@ void error_callback(int error, const char* description) {
 void initOpenGLProgram(GLFWwindow* window) {
 	
 	//************Tutaj umieszczaj kod, który nale¿y wykonaæ raz, na pocz¹tku programu************
+	//glEnable(GL_FRAMEBUFFER_SRGB);
 	texRoom.push_back(readTextureJPG("sufit.jpg",2));
 	texRoom.push_back(readTextureJPG("floor.jpg",2));
 	for (int i = 0; i < 5; i++)
@@ -224,15 +223,9 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glfwSetWindowSizeCallback(window, windowResizeCallback);
 	glfwSetKeyCallback(window, key_callback);
 	
-	texPainting.push_back(readTexturePNG("Black.PNG",2));
+	texPainting.push_back(readTexturePNG("wood.png",1));
 	texPainting.push_back(readTextureJPG("painting.png",2));
-	texPainting.push_back(readTexturePNG("Black.PNG",2));
-	texStatue.push_back(readTexturePNG("statue1.png", 2));
-	texStatue.push_back(readTexturePNG("statue2.png", 2));
-	texStatue.push_back(readTexturePNG("statue1.png", 2));
-	texStatue.push_back(readTexturePNG("statue2.png", 2));
-	tex0 = readTextureJPG("painting.png",2);
-	tex1 = readTexturePNG("bricks.png",2);
+	texPainting.push_back(readTexturePNG("wood.png",1));
 	sp = new ShaderProgram("VertexShader.glsl", NULL, "FragmenShader.glsl");
 	//sp1 = new ShaderProgram("ModelVS.glsl", NULL, "ModelFS.glsl");
 }
@@ -247,11 +240,33 @@ void freeOpenGLProgram(GLFWwindow* window) {
 
 
 
-void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room, std::vector<Model> paintings, std::vector<Model> statues) {
+void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room, std::vector<Model> paintings, std::vector<Model> humans, std::vector<Model> statues) {
 	//************Tutaj umieszczaj kod rysuj¹cy obraz******************
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glm::vec4 lp = glm::vec4(0, 3, -5, 1); // Ustalenie wspó³rzêdnyh Ÿród³a œwiata³a
-	glUniform3fv(sp->u("lightPosition"), 1, glm::value_ptr(camera.cameraPos));
+	std::vector<glm::vec3> lightPositions = {
+		glm::vec3(7.5, 4, -7.5),
+		glm::vec3(-7.5, 4,- 7.5),
+		glm::vec3(7.5, 4, 7.5),
+		glm::vec3(-7.5, 4, 7.5),
+		camera.cameraPos
+	};
+	std::vector<glm::vec3> lightColors = {
+		glm::vec3(1,0,0),
+		glm::vec3(0,1,0),
+		glm::vec3(0,0,1),
+		glm::vec3(1,1,0),
+		glm::vec3(1,1,1)
+	};
+	for (int i = 0; i < 5; i++) {
+		string number = to_string(i);
+		//glUniform3f(sp->u(("lightPositions["+ number+"]").c_str()), lightPositions[i].x, lightPositions[i].y, lightPositions[i].z);
+		glUniform3fv(sp->u(("lightColors[" + number + "]").c_str()), 1, &lightColors[i][0]);
+		
+	}
+	glUniform3fv(sp->u("lightPositions"), lightPositions.size(), &lightPositions[0][0] );
+	//glUniform3fv(sp->u("lightPositions"), 1, glm::value_ptr(camera.cameraPos));
+	//glUniform3fv(sp->u("lightPosition"), 1, glm::value_ptr(camera.cameraPos));
 	glUniform3fv(sp->u("viewPosition"), 1, glm::value_ptr(camera.cameraPos));
 	glm::mat4 V = camera.cameraMatrix();
 
@@ -265,13 +280,17 @@ void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room, std::ve
 	
 	room.drawRoom();
 	walls.drawWalls();
+	for (int i = 0; i < humans.size(); i++)
+	{
+		humans[i].drawModel();
+	}
+	for (int i = 0; i < 4; i++)
+	{
+		statues[i].drawModel();
+	}
 	for (int i = 0; i < paintings.size(); i++)
 	{
 		paintings[i].drawModel();	
-	}
-	for (int i = 0; i < statues.size(); i++)
-	{
-		statues[i].drawModel();
 	}
 
 	
@@ -284,6 +303,34 @@ void drawScene(GLFWwindow* window, Camera camera, Walls walls,Room room, std::ve
 
 	glfwSwapBuffers(window); //Przerzuæ tylny bufor na przedni
 
+}
+
+void calcDirHumans(std::vector<float>  &dirHumans,std::vector<Model> const& humans, Room const& room)
+{
+	if (humans[0].translate.x >= -1.0f - 0.5f)
+	{
+		dirHumans[0] = -1;
+	}
+	else if (humans[0].translate.x <= -room.roomWidth + 0.7f)
+	{
+		dirHumans[0] = 1;
+	}
+	if (humans[1].translate.z >= room.roomWidth - 0.7f)
+	{
+		dirHumans[1] = -1;
+	}
+	else if (humans[1].translate.z <= -room.roomWidth + 0.7f)
+	{
+		dirHumans[1] = 1;
+	}
+	if (humans[2].translate.z >= room.roomWidth - 0.7f)
+	{
+		dirHumans[2] = -1;
+	}
+	else if (humans[2].translate.z <= 3.0f)
+	{
+		dirHumans[2] = 1;
+	}
 }
 
 int main()
@@ -327,36 +374,50 @@ int main()
 	glm::mat4 M = glm::mat4(1.0f);
 	Room room = Room(M, 7.0f, 15.f, sp, texRoom);
 	Walls walls = Walls(M, sp, texWalls,room.roomWidth,room.roomHeight);
-	std::vector<Model> paintings = { Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[2],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[2],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[3],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[3],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[4],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[4],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[5],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[5],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[0],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[0],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
-	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[1],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.0f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	std::vector<Model> paintings = { Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[2],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.05f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[2],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.05f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[3],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.05f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[3],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.05f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[4],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.05f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[4],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.05f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[5],sp,glm::vec3(room.roomWidth / 2.0,0.0f,0.05f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,room.matricies[5],sp,glm::vec3(-room.roomWidth / 2.0,0.0f,0.05f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[0],sp,glm::vec3(0.0f,0.0f,1.05f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[0],sp,glm::vec3(0.0f,0.0f,-1.05f),0.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[1],sp,glm::vec3(0.0f,0.0f,1.05f),180.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[1],sp,glm::vec3(0.0f,0.0f,-1.05f),0.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[2],sp,glm::vec3(1.05f,0.0f,0.0f),-90.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[2],sp,glm::vec3(-1.05f,0.0f,0.0f),90.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[3],sp,glm::vec3(1.05f,0.0f,0.0f),-90.0f, glm::vec3(0.0f,1.0f,0.0f)),
+	Model("fbxPainting.fbx",0.1f,texPainting,walls.matricies[3],sp,glm::vec3(-1.05f,0.0f,0.0f),90.0f, glm::vec3(0.0f,1.0f,0.0f)),
 	
 	};
-	vector<Model> statues = {
-	Model("Statue1.fbx",7.0f,texStatue,M,sp,vec3(2.0f,-2.0f,-2.0f),180.0f, glm::vec3(0.0f,1.0f,1.0f)),
-	Model("Statue2.obj",0.01f,texStatue,M,sp,vec3(2.0f,-2.0f,2.0f),180.0f, glm::vec3(0.0f,1.0f,1.0f)), //zle postawiona
-	Model("Statue1.fbx",7.0f,texStatue,M,sp,vec3(-2.0f,-2.0f,-2.0f),180.0f, glm::vec3(0.0f,1.0f,1.0f)),
-	Model("Statue2.obj",0.01f,texStatue,M,sp,vec3(-2.0f,-2.0f,2.0f),180.0f, glm::vec3(0.0f,1.0f,1.0f)), //zle postawiona
+	std::vector<GLuint> texStatue1 = { readTexturePNG("statue1.png", 1) };
+	std::vector<GLuint> texStatue2 = { readTextureJPG("statue2.jpg",1) };
+	std::vector<GLuint> texHuman = { readTexturePNG("jess.png", 1) };
+	std::vector<Model> humans = {
+		Model("human1.obj", 0.002f, texHuman, M, sp, glm::vec3(-6.0f, -2.0f, -6.0f), -90.0f, glm::vec3(1.0f, 0.0f, 0.0f)),
+		Model("human1.obj", 0.002f, texHuman, M, sp, glm::vec3(13.0f, -2.0f, -13.0f), -90.0f, glm::vec3(1.0f, 0.0f, 0.0f)),
+		Model("human1.obj", 0.002f, texHuman, M, sp, glm::vec3(-3.0f, -2.0f, 3.0f), -90.0f, glm::vec3(1.0f, 0.0f, 0.0f)),
 	};
-	/*for (int i = 0; i < 4; i++)
-	{
-		paintings.push_back(Model("fbxPainting.fbx", 0.1f, texPainting, walls.matricies[i], sp, glm::vec3(0.0f, 0.0f, -1.0f)));
-	}*/
-	//Model painting = Model("fbxPainting.fbx", 0.1f, texPainting, walls.matricies[0], sp, glm::vec3(0.0f,0.0f,-1.0f));
+	std::vector <float> dirHumans = { 1.0f,1.0f,1.0f,1.0f };
+	vector<Model> statues = {
+	Model("Statue1.fbx",7.0f,texStatue2,M,sp,vec3(2.0f,-2.0f,-2.0f),180.0f, glm::vec3(0.0f,1.0f,1.0f)),
+	Model("Statue2.obj",0.01f,texStatue1,M,sp,vec3(2.0f,-2.0f,2.0f),0.0f, glm::vec3(0.0f,0.0f,1.0f)), 
+	Model("Statue1.fbx",7.0f,texStatue2,M,sp,vec3(-2.0f,-2.0f,-2.0f),180.0f, glm::vec3(0.0f,1.0f,1.0f)),
+	Model("Statue2.obj",0.01f,texStatue1,M,sp,vec3(-2.0f,-2.0f,2.0f),0.0f, glm::vec3(1.0f,0.0f,0.0f)), 
+	};
 	glfwSetTime(0); //Zeruj timer
 	while (!glfwWindowShouldClose(window)) //Tak d³ugo jak okno nie powinno zostaæ zamkniête
 	{
+		calcDirHumans(dirHumans,humans,room);
+		humans[0].translate.x += dirHumans[0]*0.01f;
+		humans[1].translate.z += dirHumans[1] * 0.01f;
+		humans[2].translate.x += dirHumans[2] * -0.01f;
+		humans[2].translate.z += dirHumans[2] * 0.01f;
 		camera.cameraCalculateNewPos(positionSpeedVertical, positionSpeedHorizontal, glfwGetTime());
 		glfwSetTime(0); //Zeruj timer
-		drawScene(window, camera, walls,room,paintings, statues); //Wykonaj procedurê rysuj¹c¹
+		drawScene(window, camera, walls,room,paintings, humans,statues); //Wykonaj procedurê rysuj¹c¹
 		glfwPollEvents(); //Wykonaj procedury callback w zaleznoœci od zdarzeñ jakie zasz³y.
 	}
 	
